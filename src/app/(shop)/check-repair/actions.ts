@@ -11,7 +11,7 @@ export async function checkRepairStatus(formData: FormData) {
         return { error: 'Por favor ingrese el número de ticket y su contacto (email o teléfono)' };
     }
 
-    const supabase = await createClient();
+    const supabase = await createClient() as any;
 
     // Buscar la reparación por número de ticket
     const { data: repair, error } = await supabase

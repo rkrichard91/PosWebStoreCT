@@ -56,8 +56,8 @@ export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
     }
 
     return (
-        <div className="flex items-center gap-4">
-            <div className="relative w-40 h-40 rounded-md overflow-hidden border border-input bg-muted flex items-center justify-center">
+        <div className="flex flex-col md:flex-row items-start gap-4">
+            <div className="relative w-40 h-40 shrink-0 rounded-md overflow-hidden border border-input bg-muted flex items-center justify-center">
                 {value ? (
                     <>
                         <div className="absolute top-2 right-2 z-10">
@@ -79,16 +79,44 @@ export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
                     </div>
                 )}
             </div>
-            <div className="flex-1">
-                <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={onUpload}
-                    disabled={disabled || isLoading}
-                />
-                <p className="text-xs text-muted-foreground mt-2">
-                    Formatos soportados: JPG, PNG, WEBP.
-                </p>
+            <div className="flex-1 w-full space-y-4">
+                <div className="space-y-2">
+                    <span className="text-sm font-medium">Subir desde dispositivo</span>
+                    <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={onUpload}
+                        disabled={disabled || isLoading}
+                    />
+                </div>
+
+                <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-background px-2 text-muted-foreground">
+                            O pegar URL
+                        </span>
+                    </div>
+                </div>
+
+                <div className="space-y-2">
+                    <span className="text-sm font-medium">URL de la imagen</span>
+                    <Input
+                        type="text"
+                        placeholder="https://ejemplo.com/imagen.jpg"
+                        value={value || ""}
+                        onChange={(e) => onChange(e.target.value)}
+                        disabled={disabled || isLoading}
+                    />
+                </div>
+
+                {isLoading && (
+                    <p className="text-sm text-muted-foreground animate-pulse">
+                        Subiendo imagen...
+                    </p>
+                )}
             </div>
         </div>
     )
