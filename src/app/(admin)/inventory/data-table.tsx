@@ -176,6 +176,34 @@ export function DataTable<TData, TValue>({
         return 'peripheral' // Fallback seguro
     }
 
+    const resolveImageField = (p: any): string | null => {
+        const val = p.image_url || p.imageUrl || p.Image_url || p.image || p.imagen || p.foto || p.url || p.picture || null
+        return typeof val === 'string' && val.trim().length > 0 ? val.trim() : null
+    }
+
+    const parsePrice = (val: any): number => {
+        if (typeof val === 'number') return val
+        if (typeof val === 'string') {
+            // Remover $ y , (ej: "$1,200.50" -> "1200.50")
+            const clean = val.replace(/[$,]/g, '')
+            const num = parseFloat(clean)
+            return isNaN(num) ? 0 : num
+        }
+        return 0
+    }
+
+    const resolvePrice = (p: any, type: 'public' | 'cash' | 'cost'): number => {
+        let val
+        if (type === 'public') {
+            val = p.price_public || p.price || p.precio || p.precio_publico || p.pvp || p.public_price || p.precio_venta
+        } else if (type === 'cash') {
+            val = p.price_cash || p.cash_price || p.precio_efectivo || p.efectivo || p.price_discount
+        } else if (type === 'cost') {
+            val = p.cost_price || p.cost || p.precio_costo || p.costo || p.purchase_price
+        }
+        return parsePrice(val)
+    }
+
     const processImport = async (products: Record<string, unknown>[]) => {
         if (products.length === 0) {
             toast.error("No se encontraron productos en el archivo")
@@ -200,6 +228,12 @@ export function DataTable<TData, TValue>({
             }
 
             const category = normalizeCategory(product.category)
+            const imageUrl = resolveImageField(product)
+
+            // Resolve prices
+            const pricePublic = resolvePrice(product, 'public')
+            const priceCash = resolvePrice(product, 'cash') || pricePublic // Fallback to public if cash missing
+            const priceCost = resolvePrice(product, 'cost')
 
             // Preparar datos del producto con valores por defecto
             const productData = {
@@ -208,12 +242,12 @@ export function DataTable<TData, TValue>({
                 slug: product.slug || (product.name as string)?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") + `-${Math.random().toString(36).substr(2, 5)}`,
                 category: category,
                 description: product.description || null,
-                price_public: Number(product.price_public) || 0,
-                price_cash: Number(product.price_cash) || Number(product.price_public) || 0,
-                cost_price: Number(product.cost_price) || 0,
+                price_public: pricePublic,
+                price_cash: priceCash,
+                cost_price: priceCost,
                 stock_physical: Number(product.stock_physical) || 0,
                 min_stock_alert: Number(product.min_stock_alert) || 5,
-                image_url: product.image_url || null,
+                image_url: imageUrl,
                 is_active: product.is_active !== undefined ? Boolean(product.is_active) : true,
                 specs: specs,
                 updated_at: new Date().toISOString()

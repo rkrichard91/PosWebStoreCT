@@ -22,9 +22,15 @@ export type Product = {
     name: string
     category: string
     price_public: number
+    price_cash: number
+    cost_price: number | null
     stock_physical: number
+    min_stock_alert: number
     is_active: boolean
     image_url: string | null
+    slug: string
+    description: string | null
+    specs: Record<string, any> | null
 }
 
 export const columns: ColumnDef<Product>[] = [
