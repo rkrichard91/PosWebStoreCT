@@ -63,7 +63,7 @@ export default function MyAccountPage() {
             const { data: repairsData } = await supabase
                 .from("repairs")
                 .select("*")
-                .eq("customer_contact", user.email)
+                .eq("customer_contact", user.email || "")
                 .order("created_at", { ascending: false });
 
             if (repairsData) setRepairs(repairsData as any);

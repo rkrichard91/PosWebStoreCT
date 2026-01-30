@@ -62,8 +62,8 @@ export default function QuotesPage() {
         const supabase = createClient();
         const { error } = await supabase
             .from('orders')
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            .update({ status: 'completed', origin: 'pos' } as any) // Treating as POS Sale
+            // @ts-expect-error - ignoring never type on update
+            .update({ status: 'completed', origin: 'pos' }) // Treating as POS Sale
             .eq('id', quoteId);
 
         if (error) {
