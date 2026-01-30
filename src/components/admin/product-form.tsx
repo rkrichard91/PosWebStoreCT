@@ -1,7 +1,7 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm, UseFormReturn } from "react-hook-form"
+import { useForm } from "react-hook-form"
 import * as z from "zod"
 import { Button } from "@/components/ui/button"
 import {
@@ -43,7 +43,7 @@ const productSchema = z.object({
     is_active: z.boolean().default(true),
     image_url: z.string().nullable().optional(),
     description: z.string().nullable().optional(),
-    specs: z.record(z.any()).nullable().optional(),
+    specs: z.record(z.string(), z.any()).nullable().optional(),
 });
 
 export type ProductFormValues = z.infer<typeof productSchema>
@@ -56,6 +56,7 @@ interface ProductFormProps {
 
 export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormProps) {
     const form = useForm<ProductFormValues>({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         resolver: zodResolver(productSchema) as any,
         defaultValues: {
             sku: initialData?.sku || "",
@@ -82,6 +83,7 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
     const [profitMargin, setProfitMargin] = useState<string>("30")
     const [taxRate, setTaxRate] = useState<string>("15")
 
+    // eslint-disable-next-line react-hooks/incompatible-library
     const category = form.watch("category");
 
     // Calculator Logic
@@ -129,7 +131,7 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
     const renderSpecField = (name: string, label: string, placeholder: string, type: "text" | "number" = "text") => (
         <FormField
             control={form.control}
-            // @ts-ignore
+
             name={`specs.${name}`}
             render={({ field }) => (
                 <FormItem>
@@ -139,7 +141,7 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                             type={type}
                             placeholder={placeholder}
                             {...field}
-                            // @ts-ignore
+
                             value={field.value || ""}
                             onChange={(e) => {
                                 const val = type === 'number' ? parseFloat(e.target.value) : e.target.value;
@@ -156,12 +158,12 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
     const renderSelectSpec = (name: string, label: string, options: { value: string, label: string }[]) => (
         <FormField
             control={form.control}
-            // @ts-ignore
+
             name={`specs.${name}`}
             render={({ field }) => (
                 <FormItem>
                     <FormLabel>{label}</FormLabel>
-                    {/* @ts-ignore */}
+
                     <Select onValueChange={field.onChange} value={field.value?.toString() || ""}>
                         <FormControl>
                             <SelectTrigger>
@@ -217,7 +219,7 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                             <FormItem>
                                 <FormLabel>Slug (URL)</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="nombre-producto-modelo" {...field} />
+                                    <Input placeholder="nombre-producto-modelo" {...field} value={field.value || ""} />
                                 </FormControl>
                                 <FormDescription>Identificador único en la URL.</FormDescription>
                                 <FormMessage />

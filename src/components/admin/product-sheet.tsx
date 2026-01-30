@@ -23,13 +23,13 @@ interface ProductSheetProps {
 export function ProductSheet({ open, onOpenChange, product }: ProductSheetProps) {
     const [loading, setLoading] = useState(false)
     const router = useRouter()
-    const supabase = createClient() as any
+    const supabase = createClient()
 
     const initialData: ProductFormValues = {
         sku: product.sku,
         name: product.name,
         slug: product.slug,
-        category: product.category as any,
+        category: product.category as "cpu" | "motherboard" | "ram" | "gpu" | "storage" | "psu" | "case" | "monitor" | "peripheral",
         description: product.description || "",
         price_public: product.price_public,
         price_cash: product.price_cash,
@@ -61,8 +61,9 @@ export function ProductSheet({ open, onOpenChange, product }: ProductSheetProps)
             updated_at: new Date().toISOString()
         }
 
-        const { error } = await supabase
-            .from('products')
+        const { error } = await (supabase
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .from('products') as any)
             .update(productData)
             .eq('id', product.id)
 

@@ -4,8 +4,7 @@
 import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { createClient } from "@/lib/supabase/client";
-import { Database } from "@/types/database.types";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -25,7 +24,12 @@ const COLUMNS = [
 
 export default function WorkshopKanban() {
     const [repairs, setRepairs] = useState<Repair[]>([]);
-    const supabase = createClient() as any;
+    const supabase = createClient();
+
+    const fetchRepairs = async () => {
+        const { data } = await supabase.from('repairs').select('*').order('created_at', { ascending: false });
+        if (data) setRepairs(data);
+    };
 
     useEffect(() => {
         fetchRepairs();
@@ -41,12 +45,8 @@ export default function WorkshopKanban() {
         return () => {
             supabase.removeChannel(channel);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-
-    const fetchRepairs = async () => {
-        const { data } = await supabase.from('repairs').select('*').order('created_at', { ascending: false });
-        if (data) setRepairs(data);
-    };
 
     const onDragEnd = async (result: DropResult) => {
         const { destination, source, draggableId } = result;
@@ -58,12 +58,13 @@ export default function WorkshopKanban() {
 
         // Optimistic update
         const updatedRepairs = repairs.map(r =>
-            r.id === draggableId ? { ...r, status: newStatus as any } : r
+            r.id === draggableId ? { ...r, status: newStatus as Repair['status'] } : r
         );
         setRepairs(updatedRepairs);
 
         // Persist
-        await supabase.from('repairs').update({ status: newStatus as any }).eq('id', draggableId);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (supabase.from('repairs') as any).update({ status: newStatus }).eq('id', draggableId);
     };
 
     return (

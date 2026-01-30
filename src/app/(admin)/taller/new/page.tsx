@@ -24,6 +24,7 @@ const repairSchema = z.object({
 
 export default function NewRepairPage() {
     const router = useRouter();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const supabase = createClient() as any;
 
     const form = useForm<z.infer<typeof repairSchema>>({

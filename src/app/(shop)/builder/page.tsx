@@ -2,9 +2,9 @@
 
 import { useBuilderStore } from "@/store/builder-store";
 import { BuilderSummary } from "@/components/shop/builder-summary";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Cpu, CircuitBoard, MemoryStick, HardDrive, Zap, Box, Monitor, Mouse, Plus, X, RotateCcw } from "lucide-react";
+import { Cpu, CircuitBoard, MemoryStick, HardDrive, Zap, Box, Monitor, Mouse, X, RotateCcw } from "lucide-react";
 import Image from "next/image";
 import { Database } from "@/types/database.types";
 import { formatCurrency } from "@/lib/utils";
@@ -13,6 +13,7 @@ import { ProductSelector } from "@/components/shop/product-selector";
 
 type Category = Database['public']['Tables']['products']['Row']['category'];
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CATEGORIES: { id: Category; label: string; icon: any }[] = [
     { id: 'cpu', label: 'Procesador', icon: Cpu },
     { id: 'motherboard', label: 'Placa Madre', icon: CircuitBoard },

@@ -1,4 +1,5 @@
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { LayoutDashboard, ShoppingCart, Package, Wrench, Settings, LogOut, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -19,7 +20,7 @@ export function AdminSidebar() {
                 <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
                     <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
                         <div className="relative h-6 w-6 overflow-hidden">
-                            <img src="/logo.png" alt="Logo" className="object-contain h-full w-full" />
+                            <Image src="/logo.png" alt="Logo" fill className="object-contain" />
                         </div>
                         <span className="">Center Tecno Admin</span>
                     </Link>

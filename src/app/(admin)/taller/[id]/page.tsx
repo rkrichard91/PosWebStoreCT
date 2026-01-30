@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -18,6 +18,7 @@ export default function RepairDetailPage() {
     const params = useParams();
     const router = useRouter();
     const id = params?.id as string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const supabase = createClient() as any;
 
     const [repair, setRepair] = useState<Repair | null>(null);
@@ -31,21 +32,21 @@ export default function RepairDetailPage() {
     const [status, setStatus] = useState("received");
 
     useEffect(() => {
-        if (id) fetchRepair();
-    }, [id]);
-
-    const fetchRepair = async () => {
-        const { data, error } = await supabase.from('repairs').select('*').eq('id', id).single();
-        if (data) {
-            setRepair(data);
-            // Init form
-            setDiagnosis(data.diagnosis || "");
-            setCostService(data.cost_service?.toString() || "0");
-            setCostParts(data.cost_parts?.toString() || "0");
-            setStatus(data.status || "received");
+        const fetchRepair = async () => {
+            const { data } = await supabase.from('repairs').select('*').eq('id', id).single();
+            if (data) {
+                setRepair(data);
+                // Init form
+                setDiagnosis(data.diagnosis || "");
+                setCostService(data.cost_service?.toString() || "0");
+                setCostParts(data.cost_parts?.toString() || "0");
+                setStatus(data.status || "received");
+            }
+            setLoading(false);
         }
-        setLoading(false);
-    }
+
+        if (id) fetchRepair();
+    }, [id, supabase]);
 
     const handleSave = async () => {
         setSaving(true);

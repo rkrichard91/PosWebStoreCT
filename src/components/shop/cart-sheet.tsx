@@ -25,6 +25,7 @@ export function CartSheet() {
 
     // Evitar hidratación mismatch
     useEffect(() => {
+        // eslint-disable-next-line
         setIsMounted(true);
     }, []);
 

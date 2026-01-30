@@ -28,9 +28,9 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import Image from "next/image"
 import { Download, FileJson, FileSpreadsheet, Upload, LayoutGrid, List } from "lucide-react"
 import { toast } from "sonner"
 import { createClient } from "@/lib/supabase/client"
@@ -57,6 +57,7 @@ export function DataTable<TData, TValue>({
     const [rowSelection, setRowSelection] = React.useState({})
     const [view, setView] = React.useState<"list" | "grid">("list")
     const router = useRouter()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const supabase = createClient() as any
 
     const table = useReactTable({
@@ -246,11 +247,13 @@ export function DataTable<TData, TValue>({
 
         return 'peripheral' // Default fallback
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const resolveImageField = (p: any): string | null => {
         const val = p.image_url || p.imageUrl || p.Image_url || p.image || p.imagen || p.foto || p.url || p.picture || null
         return typeof val === 'string' && val.trim().length > 0 ? val.trim() : null
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const parsePrice = (val: any): number => {
         if (typeof val === 'number') return val
         if (typeof val === 'string') {
@@ -261,6 +264,7 @@ export function DataTable<TData, TValue>({
         return 0
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const resolvePrice = (p: any, type: 'public' | 'cash' | 'cost'): number => {
         let val
         if (type === 'public') {
@@ -529,10 +533,11 @@ export function DataTable<TData, TValue>({
                                 <Card key={row.id} className="overflow-hidden flex flex-col justify-between">
                                     <div className="aspect-square relative bg-muted/50">
                                         {product.image_url ? (
-                                            <img
+                                            <Image
                                                 src={product.image_url}
                                                 alt={product.name}
-                                                className="w-full h-full object-cover transition-transform hover:scale-105 duration-300"
+                                                fill
+                                                className="object-cover transition-transform hover:scale-105 duration-300"
                                             />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">

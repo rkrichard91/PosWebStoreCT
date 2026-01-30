@@ -16,7 +16,7 @@ export async function middleware(request: NextRequest) {
                     return request.cookies.getAll();
                 },
                 setAll(cookiesToSet) {
-                    cookiesToSet.forEach(({ name, value, options }) =>
+                    cookiesToSet.forEach(({ name, value }) =>
                         request.cookies.set(name, value)
                     );
                     supabaseResponse = NextResponse.next({
@@ -39,16 +39,34 @@ export async function middleware(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     // Arrays de rutas protegidas
-    const protectedRoutes = ["/dashboard", "/pos", "/inventory", "/taller"];
-    const isProtectedRoute = protectedRoutes.some(route => request.nextUrl.pathname.startsWith(route));
+    const adminRoutes = ["/dashboard", "/pos", "/inventory", "/taller", "/quotes"];
+    const clientRoutes = ["/my-account"];
 
-    if (isProtectedRoute && !user) {
+    const isAdminRoute = adminRoutes.some(route => request.nextUrl.pathname.startsWith(route));
+    const isClientRoute = clientRoutes.some(route => request.nextUrl.pathname.startsWith(route));
+
+    // 1. Check Login
+    if ((isAdminRoute || isClientRoute) && !user) {
         return NextResponse.redirect(new URL("/login", request.url));
     }
 
-    // Si trata de entrar al login y ya tiene usuario, redirigir al dashboard
-    if (request.nextUrl.pathname === "/login" && user) {
-        return NextResponse.redirect(new URL("/dashboard", request.url));
+    // 2. Check Role Permissions
+    if (user) {
+        const role = user.user_metadata.role || 'client'; // Default to client if no role
+
+        // If trying to access Admin Route but is NOT admin -> Redirect to Client Dashboard
+        if (isAdminRoute && role !== 'admin') {
+            return NextResponse.redirect(new URL("/my-account", request.url));
+        }
+
+        // If on Login/Register page -> Redirect based on role
+        if (request.nextUrl.pathname === "/login" || request.nextUrl.pathname === "/register") {
+            if (role === 'admin') {
+                return NextResponse.redirect(new URL("/dashboard", request.url));
+            } else {
+                return NextResponse.redirect(new URL("/my-account", request.url));
+            }
+        }
     }
 
     return supabaseResponse;

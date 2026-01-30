@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Wrench, Monitor, ShoppingCart, ArrowRight, CheckCircle2 } from "lucide-react";
-import { Navbar } from "@/components/shop/navbar";
 
 export default function Home() {
   return (

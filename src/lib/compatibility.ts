@@ -22,7 +22,7 @@ export function checkCompatibility(
 
     // Safe parsing helper since specs is JSONB
     const getSpecs = (product: Product | null) => {
-        return (product?.specs as any) || {};
+        return (product?.specs as unknown as Record<string, unknown>) || {};
     };
 
     const cpuSpecs = getSpecs(cpu);

@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { redirect } from 'next/navigation';
 
 export async function checkRepairStatus(formData: FormData) {
@@ -11,6 +12,7 @@ export async function checkRepairStatus(formData: FormData) {
         return { error: 'Por favor ingrese el número de ticket y su contacto (email o teléfono)' };
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const supabase = await createClient() as any;
 
     // Buscar la reparación por número de ticket

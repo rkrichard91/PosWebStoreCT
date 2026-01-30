@@ -13,6 +13,7 @@ import { formatCurrency } from '@/lib/utils'; // Assuming this utility exists
 
 export default function CheckRepairPage() {
     const [loading, setLoading] = useState(false);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [result, setResult] = useState<any>(null);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

@@ -36,8 +36,8 @@ export const ReceiptTicket = React.forwardRef<HTMLDivElement, ReceiptTicketProps
                 <p>{new Date(order.created_at).toLocaleString()}</p>
                 {order.customer_data ? (
                     <div className="mt-2 text-left border-t border-b border-black py-1">
-                        <p>Cliente: {(order.customer_data as any).name || 'Consumidor Final'}</p>
-                        <p>RUT/DNI: {(order.customer_data as any).rut || 'N/A'}</p>
+                        <p>Cliente: {(order.customer_data as Record<string, unknown>).name as string || 'Consumidor Final'}</p>
+                        <p>RUT/DNI: {(order.customer_data as Record<string, unknown>).rut as string || 'N/A'}</p>
                     </div>
                 ) : (
                     <div className="mt-2 text-left border-t border-b border-black py-1">

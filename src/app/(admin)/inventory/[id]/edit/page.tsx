@@ -16,6 +16,7 @@ export default function EditProductPage() {
     const [loading, setLoading] = useState(false)
     const [initialData, setInitialData] = useState<ProductFormValues | undefined>(undefined)
     const [fetching, setFetching] = useState(true)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const supabase = createClient() as any // Cast to any to bypass Database Generic issues
 
     useEffect(() => {

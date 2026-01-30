@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { Product } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -141,10 +142,11 @@ export default function CatalogoPage() {
                                         {/* Image Area */}
                                         <div className="aspect-square bg-muted relative overflow-hidden group">
                                             {product.image_url ? (
-                                                <img
+                                                <Image
                                                     src={product.image_url}
                                                     alt={product.name}
-                                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                                    fill
+                                                    className="object-cover transition-transform duration-500 group-hover:scale-110"
                                                 />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">

@@ -1,16 +1,9 @@
 "use client"
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { ColumnDef } from "@tanstack/react-table"
-import { MoreHorizontal, ArrowUpDown } from "lucide-react"
+import { ArrowUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { ActionCell } from "./actions"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -37,7 +30,7 @@ export type Product = {
 export const columns: ColumnDef<Product>[] = [
     {
         id: "select",
-        header: ({ table }) => (
+        header: ({ table }: { table: any }) => (
             <Checkbox
                 checked={
                     table.getIsAllPageRowsSelected() ||
@@ -63,7 +56,7 @@ export const columns: ColumnDef<Product>[] = [
     },
     {
         accessorKey: "name",
-        header: ({ column }) => {
+        header: ({ column }: { column: any }) => {
             return (
                 <Button
                     variant="ghost"
@@ -78,12 +71,12 @@ export const columns: ColumnDef<Product>[] = [
     {
         accessorKey: "category",
         header: "Categoría",
-        cell: ({ row }) => <Badge variant="outline" className="capitalize">{row.getValue("category")}</Badge>,
+        cell: ({ row }: { row: any }) => <Badge variant="outline" className="capitalize">{row.getValue("category")}</Badge>,
     },
     {
         accessorKey: "price_public",
         header: "Precio",
-        cell: ({ row }) => {
+        cell: ({ row }: { row: any }) => {
             const amount = parseFloat(row.getValue("price_public"))
             const formatted = new Intl.NumberFormat("es-CL", {
                 style: "currency",
@@ -96,7 +89,7 @@ export const columns: ColumnDef<Product>[] = [
     {
         accessorKey: "stock_physical",
         header: "Stock",
-        cell: ({ row }) => {
+        cell: ({ row }: { row: any }) => {
             const stock = parseFloat(row.getValue("stock_physical"))
             return (
                 <div className={stock <= 2 ? "text-red-500 font-bold" : ""}>
@@ -108,7 +101,7 @@ export const columns: ColumnDef<Product>[] = [
     {
         accessorKey: "is_active",
         header: "Estado",
-        cell: ({ row }) => {
+        cell: ({ row }: { row: any }) => {
             const isActive = row.getValue("is_active")
             return (
                 <Badge variant={isActive ? "default" : "secondary"}>
@@ -119,6 +112,6 @@ export const columns: ColumnDef<Product>[] = [
     },
     {
         id: "actions",
-        cell: ({ row }) => <ActionCell product={row.original} />
+        cell: ({ row }: { row: any }) => <ActionCell product={row.original} />
     },
 ]

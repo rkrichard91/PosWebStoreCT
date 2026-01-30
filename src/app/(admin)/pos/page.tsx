@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useReactToPrint } from 'react-to-print';
 import { useCartStore } from "@/store/cart-store";
 import { useBarcodeScanner } from "@/hooks/useBarcodeScanner";
 import { createClient } from "@/lib/supabase/client";
-import { Product, Order, OrderInsert } from "@/types";
+import { Product } from "@/types";
+import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,6 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ReceiptTicket, OrderWithItems } from "@/components/admin/receipt-ticket";
 
 export default function PosPage() {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const supabase = createClient() as any; // Cast client to any
     const { items, addItem, removeItem, updateQuantity, clearCart, getTotal } = useCartStore();
 
@@ -39,13 +41,8 @@ export default function PosPage() {
         contentRef: componentRef,
     });
 
-    // Initial load
-    useEffect(() => {
-        searchProducts("");
-    }, []);
-
     // Search logic
-    const searchProducts = async (term: string) => {
+    const searchProducts = useCallback(async (term: string) => {
         setLoading(true);
         let query = supabase.from('products').select('*').eq('is_active', true).limit(20);
 
@@ -53,12 +50,18 @@ export default function PosPage() {
             query = query.or(`name.ilike.%${term}%,sku.ilike.%${term}%`);
         }
 
-        const { data, error } = await query;
+        const { data } = await query;
         if (data) {
             setProducts(data);
         }
         setLoading(false);
-    };
+    }, [supabase]);
+
+    // Initial load
+    useEffect(() => {
+        // eslint-disable-next-line 
+        searchProducts("");
+    }, [searchProducts]);
 
     // Debounce search
     useEffect(() => {
@@ -66,7 +69,7 @@ export default function PosPage() {
             searchProducts(searchTerm);
         }, 300);
         return () => clearTimeout(timeout);
-    }, [searchTerm]);
+    }, [searchTerm, searchProducts]);
 
     // Handle Barcode
     useBarcodeScanner(async (code) => {
@@ -91,6 +94,7 @@ export default function PosPage() {
         if (items.length === 0) return;
 
         // 1. Create Order
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const orderData: any = {
             total: getTotal(),
             payment_method: paymentMethod,
@@ -193,17 +197,18 @@ export default function PosPage() {
                                     {/* Product Image in Grid */}
                                     <div className="aspect-square relative bg-muted flex items-center justify-center overflow-hidden">
                                         {product.image_url ? (
-                                            <img
+                                            <Image
                                                 src={product.image_url}
                                                 alt={product.name}
-                                                className="w-full h-full object-cover transition-transform hover:scale-105 duration-300"
+                                                fill
+                                                className="object-cover transition-transform hover:scale-105 duration-300"
                                             />
                                         ) : (
                                             <ImageIcon className="h-10 w-10 text-muted-foreground/50" />
                                         )}
                                         {/* Optional: Stock badge overlay */}
                                         {product.stock_physical <= 2 && (
-                                            <div className="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                            <div className="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10">
                                                 Bajo Stock
                                             </div>
                                         )}
@@ -248,10 +253,11 @@ export default function PosPage() {
                                     {/* Cart Item Thumbnail */}
                                     <div className="h-10 w-10 rounded-md bg-muted overflow-hidden shrink-0 flex items-center justify-center border">
                                         {item.image_url ? (
-                                            <img
+                                            <Image
                                                 src={item.image_url}
                                                 alt={item.name}
-                                                className="w-full h-full object-cover"
+                                                fill
+                                                className="object-cover"
                                             />
                                         ) : (
                                             <ImageIcon className="h-5 w-5 text-muted-foreground/50" />
@@ -373,7 +379,7 @@ export default function PosPage() {
                                     {/* The hidden receipt to print */}
                                     <div className="hidden">
                                         <div ref={componentRef}>
-                                            <ReceiptTicket order={lastOrder} mode={printMode} />
+                                            {lastOrder && <ReceiptTicket order={lastOrder} mode={printMode} />}
                                         </div>
                                     </div>
 

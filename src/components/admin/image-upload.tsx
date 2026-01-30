@@ -44,6 +44,7 @@ export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
 
             onChange(publicUrl)
             toast.success("Imagen subida correctamente")
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
             toast.error("Error al subir imagen", { description: error.message })
         } finally {

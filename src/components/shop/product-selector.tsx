@@ -30,8 +30,8 @@ export function ProductSelector({ category, categoryLabel, onSelect, currentSele
 
     useEffect(() => {
         if (open) {
-            setLoading(true);
             const fetchProducts = async () => {
+                setLoading(true);
                 let query = supabase
                     .from('products')
                     .select('*')

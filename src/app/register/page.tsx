@@ -10,29 +10,36 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 
-export default function LoginPage() {
+export default function RegisterPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [fullName, setFullName] = useState('');
     const [loading, setLoading] = useState(false);
     const router = useRouter();
     const supabase = createClient();
 
-    const handleLogin = async (e: React.FormEvent) => {
+    const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
 
-        const { error } = await supabase.auth.signInWithPassword({
+        const { error } = await supabase.auth.signUp({
             email,
             password,
+            options: {
+                data: {
+                    full_name: fullName,
+                    role: 'client', // Default role for new users
+                },
+            },
         });
 
         if (error) {
             toast.error(error.message);
             setLoading(false);
         } else {
-            toast.success('Inicio de sesión exitoso');
-            router.push('/dashboard');
-            router.refresh();
+            toast.success('Registro exitoso. Por favor revisa tu correo para confirmar, o inicia sesión si no se requiere confirmación.');
+            // Redirect to login or dashboard depending on flow. Usually login to be safe.
+            router.push('/login');
         }
     };
 
@@ -40,13 +47,24 @@ export default function LoginPage() {
         <div className="flex h-screen w-full items-center justify-center bg-muted/40 px-4">
             <Card className="w-full max-w-sm">
                 <CardHeader>
-                    <CardTitle className="text-2xl">Iniciar Sesión</CardTitle>
+                    <CardTitle className="text-2xl">Crear Cuenta</CardTitle>
                     <CardDescription>
-                        Ingresa tu correo y contraseña para acceder al sistema.
+                        Ingresa tus datos para registrarte en el sistema.
                     </CardDescription>
                 </CardHeader>
-                <form onSubmit={handleLogin}>
+                <form onSubmit={handleRegister}>
                     <CardContent className="grid gap-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="fullName">Nombre Completo</Label>
+                            <Input
+                                id="fullName"
+                                type="text"
+                                placeholder="Juan Pérez"
+                                required
+                                value={fullName}
+                                onChange={(e) => setFullName(e.target.value)}
+                            />
+                        </div>
                         <div className="grid gap-2">
                             <Label htmlFor="email">Correo Electrónico</Label>
                             <Input
@@ -71,12 +89,12 @@ export default function LoginPage() {
                     </CardContent>
                     <CardFooter className="flex flex-col gap-4">
                         <Button className="w-full" type="submit" disabled={loading}>
-                            {loading ? 'Cargando...' : 'Iniciar Sesión'}
+                            {loading ? 'Creando cuenta...' : 'Registrarse'}
                         </Button>
                         <div className="text-center text-sm">
-                            ¿No tienes una cuenta?{' '}
-                            <Link href="/register" className="underline hover:text-primary">
-                                Regístrate aquí
+                            ¿Ya tienes una cuenta?{' '}
+                            <Link href="/login" className="underline hover:text-primary">
+                                Iniciar Sesión
                             </Link>
                         </div>
                     </CardFooter>

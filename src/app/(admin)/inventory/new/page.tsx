@@ -9,6 +9,7 @@ import { useState } from "react"
 export default function NewProductPage() {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const supabase = createClient() as any // Cast to any to bypass Database Generic issues
 
     const handleSubmit = async (values: ProductFormValues) => {

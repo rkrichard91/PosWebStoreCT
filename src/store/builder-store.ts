@@ -58,7 +58,7 @@ export const useBuilderStore = create<BuilderState>()(
                     // Mapeo seguro de categoría string a key de BuilderSelection
                     // Nota: 'service' no entra en el builder típicamente, pero lo manejamos safe
                     if (category in newSelection) {
-                        // @ts-ignore - We know category is a key of selection based on the check, effectively
+
                         newSelection[category as keyof BuilderSelection] = product;
                     }
 
@@ -89,7 +89,7 @@ export const useBuilderStore = create<BuilderState>()(
                 set((state) => {
                     const newSelection = { ...state.selection };
                     if (category in newSelection) {
-                        // @ts-ignore
+
                         newSelection[category as keyof BuilderSelection] = null;
                     }
 
