@@ -6,11 +6,12 @@ import { Button } from '@/components/ui/button';
 import { CartSheet } from './cart-sheet';
 import { createClient } from '@/lib/supabase/client';
 import { useEffect, useState } from 'react';
-import { User, UserIcon } from 'lucide-react';
+import { User } from 'lucide-react';
+import { type User as SupabaseUser } from '@supabase/supabase-js';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 export function Navbar() {
-    const [user, setUser] = useState<any>(null);
+    const [user, setUser] = useState<SupabaseUser | null>(null);
     const supabase = createClient();
 
     useEffect(() => {

@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { type User as SupabaseUser } from '@supabase/supabase-js';
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/utils";
@@ -34,7 +35,7 @@ export default function MyAccountPage() {
     const supabase = createClient();
     const router = useRouter();
     const [loading, setLoading] = useState(true);
-    const [user, setUser] = useState<any>(null);
+    const [user, setUser] = useState<SupabaseUser | null>(null);
     const [orders, setOrders] = useState<Order[]>([]);
     const [repairs, setRepairs] = useState<Repair[]>([]);
 
@@ -47,26 +48,28 @@ export default function MyAccountPage() {
             }
             setUser(user);
 
-            // Fetch Orders (Linked by customer_id which we assume matches user.id OR just strictly by email if ID logic isn't fully set up yet. 
-            // For now, let's try searching by customer_data->>email for flexibility, as customer_id might not always be linked logic-wise in legacy orders)
-            // But ideally, new registrations should link logic. Let's do a robust search:
-            // "orders where customer_id = user.id OR customer_data->>email = user.email"
             const { data: ordersData } = await supabase
                 .from("orders")
                 .select("*")
                 .or(`customer_id.eq.${user.id},customer_data->>email.eq.${user.email}`)
                 .order("created_at", { ascending: false });
 
-            if (ordersData) setOrders(ordersData as any);
+            if (ordersData) {
+                // Supabase returns generic data, we map it to our local type. 
+                // Ideally we use Database['public']['Tables']['orders']['Row'] but local type is fine for now
+                setOrders(ordersData as unknown as Order[]);
+            }
 
-            // Fetch Repairs (Linked by email since there is no customer_id column in repairs based on schema seen earlier)
+            // Fetch Repairs
             const { data: repairsData } = await supabase
                 .from("repairs")
                 .select("*")
                 .eq("customer_contact", user.email || "")
                 .order("created_at", { ascending: false });
 
-            if (repairsData) setRepairs(repairsData as any);
+            if (repairsData) {
+                setRepairs(repairsData as unknown as Repair[]);
+            }
 
             setLoading(false);
         };
