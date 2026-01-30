@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { Search, ShoppingCart, Trash2, CreditCard, Printer, FileText } from "lucide-react";
+import { Search, ShoppingCart, Trash2, CreditCard, Printer, FileText, Image as ImageIcon } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -187,9 +187,28 @@ export default function PosPage() {
                             {products.map(product => (
                                 <Card
                                     key={product.id}
-                                    className="cursor-pointer hover:border-primary transition-colors flex flex-col justify-between"
+                                    className="cursor-pointer hover:border-primary transition-colors flex flex-col justify-between overflow-hidden"
                                     onClick={() => addItem(product)}
                                 >
+                                    {/* Product Image in Grid */}
+                                    <div className="aspect-square relative bg-muted flex items-center justify-center overflow-hidden">
+                                        {product.image_url ? (
+                                            <img
+                                                src={product.image_url}
+                                                alt={product.name}
+                                                className="w-full h-full object-cover transition-transform hover:scale-105 duration-300"
+                                            />
+                                        ) : (
+                                            <ImageIcon className="h-10 w-10 text-muted-foreground/50" />
+                                        )}
+                                        {/* Optional: Stock badge overlay */}
+                                        {product.stock_physical <= 2 && (
+                                            <div className="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                                Bajo Stock
+                                            </div>
+                                        )}
+                                    </div>
+
                                     <CardContent className="p-4">
                                         <div className="font-bold line-clamp-2 text-sm mb-2 h-10">{product.name}</div>
                                         <div className="text-xs text-muted-foreground mb-4">SKU: {product.sku}</div>
@@ -225,30 +244,43 @@ export default function PosPage() {
                     ) : (
                         <div className="space-y-4">
                             {items.map(item => (
-                                <div key={item.id} className="flex gap-3 text-sm">
-                                    <div className="flex-1">
-                                        <div className="font-medium line-clamp-1">{item.name}</div>
-                                        <div className="text-muted-foreground text-xs">{formatCurrency(item.price_public)} x {item.quantity}</div>
+                                <div key={item.id} className="flex gap-3 text-sm items-center border-b pb-2 last:border-0 last:pb-0">
+                                    {/* Cart Item Thumbnail */}
+                                    <div className="h-10 w-10 rounded-md bg-muted overflow-hidden shrink-0 flex items-center justify-center border">
+                                        {item.image_url ? (
+                                            <img
+                                                src={item.image_url}
+                                                alt={item.name}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <ImageIcon className="h-5 w-5 text-muted-foreground/50" />
+                                        )}
                                     </div>
-                                    <div className="flex items-center gap-2">
+
+                                    <div className="flex-1 min-w-0">
+                                        <div className="font-medium line-clamp-1" title={item.name}>{item.name}</div>
+                                        <div className="text-muted-foreground text-xs">{formatCurrency(item.price_public)}</div>
+                                    </div>
+                                    <div className="flex items-center gap-1">
                                         <Button
-                                            variant="outline" size="icon" className="h-6 w-6"
+                                            variant="outline" size="icon" className="h-6 w-6 p-0"
                                             onClick={() => updateQuantity(item.id, item.quantity - 1)}
                                         >-</Button>
-                                        <span className="w-4 text-center">{item.quantity}</span>
+                                        <span className="w-6 text-center text-xs font-medium">{item.quantity}</span>
                                         <Button
-                                            variant="outline" size="icon" className="h-6 w-6"
+                                            variant="outline" size="icon" className="h-6 w-6 p-0"
                                             onClick={() => addItem(item)}
                                         >+</Button>
                                     </div>
-                                    <div className="font-bold min-w-[60px] text-right">
+                                    <div className="font-bold min-w-[60px] text-right text-xs sm:text-sm">
                                         {formatCurrency(item.price_public * item.quantity)}
                                     </div>
                                     <Button
-                                        variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                                        variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive ml-1"
                                         onClick={() => removeItem(item.id)}
                                     >
-                                        <XSmallIcon /> {/* Trash icon replacement */}
+                                        <XSmallIcon />
                                     </Button>
                                 </div>
                             ))}

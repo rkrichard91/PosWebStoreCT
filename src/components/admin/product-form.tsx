@@ -24,22 +24,27 @@ import {
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { ImageUpload } from "@/components/admin/image-upload"
+import { Calculator } from "lucide-react"
+import { useEffect, useState } from "react"
 
 const productSchema = z.object({
-    sku: z.string().min(3, "SKU debe tener al menos 3 caracteres"),
-    name: z.string().min(2, "Nombre debe tener al menos 2 caracteres"),
-    slug: z.string().min(3, "Slug requerido").regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug inválido (solo minúsculas y guiones)"),
-    category: z.enum(['laptop', 'cpu', 'gpu', 'motherboard', 'ram', 'storage', 'psu', 'case', 'peripheral', 'monitor', 'service']),
-    description: z.string().optional(),
-    price_public: z.coerce.number().min(0, "Precio no puede ser negativo"),
-    price_cash: z.coerce.number().min(0, "Precio efectivo no puede ser negativo"),
-    cost_price: z.coerce.number().min(0, "Costo no puede ser negativo"),
-    stock_physical: z.coerce.number().int().min(0, "Stock no puede ser negativo"),
-    min_stock_alert: z.coerce.number().int().min(1, "Mínimo 1"),
+    sku: z.string().min(1, "SKU requerido"),
+    name: z.string().min(1, "Nombre requerido"),
+    slug: z.string().nullable().optional(),
+    category: z.enum([
+        "laptop", "cpu", "gpu", "motherboard", "ram", "storage",
+        "psu", "case", "monitor", "peripheral", "service", "cooling"
+    ]),
+    price_public: z.number().min(0),
+    price_cash: z.number().min(0),
+    cost_price: z.number().nullable().optional(),
+    stock_physical: z.number().int().min(0),
+    min_stock_alert: z.number().int().min(0),
     is_active: z.boolean().default(true),
-    image_url: z.string().optional(),
-    specs: z.record(z.string(), z.any()).optional(),
-})
+    image_url: z.string().nullable().optional(),
+    description: z.string().nullable().optional(),
+    specs: z.record(z.any()).nullable().optional(),
+});
 
 export type ProductFormValues = z.infer<typeof productSchema>
 
@@ -52,24 +57,67 @@ interface ProductFormProps {
 export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormProps) {
     const form = useForm<ProductFormValues>({
         resolver: zodResolver(productSchema) as any,
-        defaultValues: initialData || {
-            sku: "",
-            name: "",
-            slug: "",
-            category: "peripheral",
-            description: "",
-            price_public: 0,
-            price_cash: 0,
-            cost_price: 0,
-            stock_physical: 0,
-            min_stock_alert: 2,
-            is_active: true,
-            image_url: "",
-            specs: {},
+        defaultValues: {
+            sku: initialData?.sku || "",
+            name: initialData?.name || "",
+            category: initialData?.category || "peripheral",
+            price_public: initialData?.price_public || 0,
+            price_cash: initialData?.price_cash || 0,
+            cost_price: initialData?.cost_price || 0,
+            stock_physical: initialData?.stock_physical || 0,
+            min_stock_alert: initialData?.min_stock_alert || 0,
+            is_active: initialData?.is_active ?? true,
+            image_url: initialData?.image_url || "",
+            description: initialData?.description || "",
+            slug: initialData?.slug || "", // Added slug to default values
+            specs: initialData?.specs || {},
         },
     })
 
+
+
+    // Calculator States
+    const [calcCost, setCalcCost] = useState<string>("")
+    const [taxIncluded, setTaxIncluded] = useState<boolean>(true)
+    const [profitMargin, setProfitMargin] = useState<string>("30")
+    const [taxRate, setTaxRate] = useState<string>("15")
+
     const category = form.watch("category");
+
+    // Calculator Logic
+    useEffect(() => {
+        const inputCost = parseFloat(calcCost)
+        const margin = parseFloat(profitMargin)
+        const tax = parseFloat(taxRate)
+
+        if (!isNaN(inputCost) && !isNaN(margin) && !isNaN(tax)) {
+            // 1. Normalize Cost (Net Cost)
+            // If tax included: Net = Input / (1 + TaxRate)
+            // If tax not included: Net = Input
+            let netCost = inputCost
+            if (taxIncluded) {
+                netCost = inputCost / (1 + (tax / 100))
+            }
+
+            // 2. Calculate Gain
+            // Gain = NetCost * (Margin / 100)
+            const gain = netCost * (margin / 100)
+
+            // 3. Base Price
+            // Base = NetCost + Gain
+            const basePrice = netCost + gain
+
+            // 4. Final Price (PVP)
+            // Final = Base * (1 + TaxRate)
+            const finalPrice = basePrice * (1 + (tax / 100))
+
+            // Update Form Fields
+            // Rounding to 2 decimal places for storage, though UI might format differently
+            form.setValue("cost_price", parseFloat(netCost.toFixed(2)))
+            form.setValue("price_public", parseFloat(finalPrice.toFixed(2)))
+            form.setValue("price_cash", parseFloat(finalPrice.toFixed(2))) // Assign same initially
+        }
+    }, [calcCost, taxIncluded, profitMargin, taxRate, form])
 
     function handleSubmit(values: ProductFormValues) {
         // Ensure specs is an object
@@ -191,12 +239,13 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                                     <SelectContent>
                                         <SelectItem value="laptop">Laptop</SelectItem>
                                         <SelectItem value="cpu">Procesador (CPU)</SelectItem>
-                                        <SelectItem value="gpu">Tarjeta de Video (GPU)</SelectItem>
                                         <SelectItem value="motherboard">Placa Madre</SelectItem>
                                         <SelectItem value="ram">Memoria RAM</SelectItem>
+                                        <SelectItem value="gpu">Tarjeta de Video (GPU)</SelectItem>
                                         <SelectItem value="storage">Almacenamiento</SelectItem>
                                         <SelectItem value="psu">Fuente de Poder</SelectItem>
                                         <SelectItem value="case">Gabinete</SelectItem>
+                                        <SelectItem value="cooling">Refrigeración</SelectItem>
                                         <SelectItem value="monitor">Monitor</SelectItem>
                                         <SelectItem value="peripheral">Periférico</SelectItem>
                                         <SelectItem value="service">Servicio</SelectItem>
@@ -281,6 +330,18 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                             </>
                         )}
 
+                        {category === 'cooling' && (
+                            <>
+                                {renderSelectSpec('type', 'Tipo', [
+                                    { value: 'air', label: 'Aire' },
+                                    { value: 'aio', label: 'Líquida (AIO)' },
+                                    { value: 'fan', label: 'Ventilador Caja' }
+                                ])}
+                                {renderSpecField('fan_size', 'Tamaño Ventilador (mm)', 'Ej: 120, 140', 'number')}
+                                {renderSpecField('socket_support', 'Soportes', 'Ej: AM4, AM5, LGA1700')}
+                            </>
+                        )}
+
                         {category === 'case' && (
                             <>
                                 {renderSpecField('max_gpu_length_mm', 'Largo Máx GPU (mm)', 'Ej: 320', 'number')}
@@ -359,12 +420,70 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                                     placeholder="Detalles del producto..."
                                     className="resize-none"
                                     {...field}
+                                    value={field.value || ""}
                                 />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
+
+                {/* PRICING CALCULATOR */}
+                <div className="border border-blue-200 dark:border-blue-900 bg-blue-50/50 dark:bg-blue-900/10 rounded-lg p-4 space-y-4">
+                    <div className="flex items-center gap-2 mb-2">
+                        <Calculator className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                        <h3 className="font-semibold text-blue-900 dark:text-blue-100">Cálculo Automático de Precios</h3>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                        <div className="space-y-2">
+                            <FormLabel className="text-xs">Costo Ingresado (Factura)</FormLabel>
+                            <Input
+                                type="number"
+                                value={calcCost}
+                                onChange={(e) => setCalcCost(e.target.value)}
+                                placeholder="0"
+                                className="bg-white dark:bg-slate-950"
+                            />
+                        </div>
+
+                        <div className="flex items-center gap-2 pb-2">
+                            <Switch
+                                checked={taxIncluded}
+                                onCheckedChange={setTaxIncluded}
+                                id="tax-included"
+                            />
+                            <FormLabel htmlFor="tax-included" className="cursor-pointer text-xs">
+                                ¿Impuesto Incluido?
+                            </FormLabel>
+                        </div>
+
+                        <div className="space-y-2">
+                            <FormLabel className="text-xs">Margen Ganancia (%)</FormLabel>
+                            <Input
+                                type="number"
+                                value={profitMargin}
+                                onChange={(e) => setProfitMargin(e.target.value)}
+                                placeholder="30"
+                                className="bg-white dark:bg-slate-950"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <FormLabel className="text-xs">Tasa IVA (%)</FormLabel>
+                            <Input
+                                type="number"
+                                value={taxRate}
+                                onChange={(e) => setTaxRate(e.target.value)}
+                                placeholder="15"
+                                className="bg-white dark:bg-slate-950"
+                            />
+                        </div>
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-2">
+                        ℹ️ Esto calculará automáticamente el <strong>Costo Neto</strong> y el <strong>Precio Público</strong> abajo.
+                    </div>
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <FormField
@@ -400,7 +519,12 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                             <FormItem>
                                 <FormLabel>Precio Costo</FormLabel>
                                 <FormControl>
-                                    <Input type="number" {...field} />
+                                    <Input
+                                        type="number"
+                                        {...field}
+                                        value={field.value || 0}
+                                        onChange={e => field.onChange(parseFloat(e.target.value))}
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>

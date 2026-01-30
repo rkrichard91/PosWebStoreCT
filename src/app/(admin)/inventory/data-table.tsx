@@ -31,10 +31,14 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Download, FileJson, FileSpreadsheet, Upload } from "lucide-react"
+import { Download, FileJson, FileSpreadsheet, Upload, LayoutGrid, List } from "lucide-react"
 import { toast } from "sonner"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { ActionCell } from "./actions"
+import { Product } from "./columns"
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[]
@@ -50,6 +54,8 @@ export function DataTable<TData, TValue>({
     const [isImporting, setIsImporting] = React.useState(false)
     const fileInputRef = React.useRef<HTMLInputElement>(null)
     const [importType, setImportType] = React.useState<"json" | "csv">("json")
+    const [rowSelection, setRowSelection] = React.useState({})
+    const [view, setView] = React.useState<"list" | "grid">("list")
     const router = useRouter()
     const supabase = createClient() as any
 
@@ -62,12 +68,74 @@ export function DataTable<TData, TValue>({
         getSortedRowModel: getSortedRowModel(),
         onColumnFiltersChange: setColumnFilters,
         getFilteredRowModel: getFilteredRowModel(),
+        onRowSelectionChange: setRowSelection,
         state: {
             sorting,
             columnFilters,
+            rowSelection,
         },
     })
 
+    // Bulk Actions Logic
+    const handleBulkDeactivate = async () => {
+        const selectedRows = table.getFilteredSelectedRowModel().rows
+        const selectedIds = selectedRows.map(row => (row.original as Product).id)
+
+        if (selectedIds.length === 0) return
+
+        toast.promise(
+            async () => {
+                const { error } = await supabase
+                    .from('products')
+                    .update({ is_active: false })
+                    .in('id', selectedIds)
+
+                if (error) throw error
+            },
+            {
+                loading: 'Desactivando productos...',
+                success: () => {
+                    setRowSelection({})
+                    router.refresh()
+                    return `${selectedIds.length} productos desactivados`
+                },
+                error: 'Error al desactivar productos'
+            }
+        )
+    }
+
+    const handleBulkDelete = async () => {
+        const selectedRows = table.getFilteredSelectedRowModel().rows
+        const selectedIds = selectedRows.map(row => (row.original as Product).id)
+
+        if (selectedIds.length === 0) return
+
+        if (!confirm(`¿Estás seguro de que deseas eliminar ${selectedIds.length} productos permanentemente? Esta acción no se puede deshacer.`)) {
+            return
+        }
+
+        toast.promise(
+            async () => {
+                const { error } = await supabase
+                    .from('products')
+                    .delete()
+                    .in('id', selectedIds)
+
+                if (error) throw error
+            },
+            {
+                loading: 'Eliminando productos...',
+                success: () => {
+                    setRowSelection({})
+                    router.refresh()
+                    return `${selectedIds.length} productos eliminados`
+                },
+                error: 'Error al eliminar productos'
+            }
+        )
+    }
+
+    // ... existing export/import functions ...
     const exportToJSON = () => {
         const jsonData = JSON.stringify(data, null, 2)
         const blob = new Blob([jsonData], { type: "application/json" })
@@ -155,27 +223,29 @@ export function DataTable<TData, TValue>({
         return products
     }
 
+    // ... helper functions normalizeCategory, resolveImageField, parsePrice, resolvePrice ...
     const normalizeCategory = (input: unknown): string => {
-        const validCategories = ['laptop', 'cpu', 'gpu', 'motherboard', 'ram', 'storage', 'psu', 'case', 'peripheral', 'monitor', 'service']
+        const validCategories = ['laptop', 'cpu', 'gpu', 'motherboard', 'ram', 'storage', 'psu', 'case', 'peripheral', 'monitor', 'service', 'cooling']
         const lower = String(input || "").toLowerCase().trim()
 
         if (validCategories.includes(lower)) return lower
 
-        // Mapeos comunes
-        if (lower.includes('process') || lower.includes('procesador')) return 'cpu'
-        if (lower.includes('graphic') || lower.includes('video') || lower.includes('gpu') || lower.includes('grafica') || lower.includes('tarjeta')) return 'gpu'
-        if (lower.includes('mother') || lower.includes('placa') || lower.includes('board') || lower.includes('madre')) return 'motherboard'
-        if (lower.includes('memory') || lower.includes('memoria') || lower.includes('ram')) return 'ram'
-        if (lower.includes('storage') || lower.includes('disco') || lower.includes('ssd') || lower.includes('hdd') || lower.includes('almacenamiento')) return 'storage'
-        if (lower.includes('power') || lower.includes('fuente') || lower.includes('psu')) return 'psu'
-        if (lower.includes('case') || lower.includes('gabinete') || lower.includes('chasis') || lower.includes('caja') || lower.includes('torre')) return 'case'
-        if (lower.includes('screen') || lower.includes('monitor') || lower.includes('pantalla') || lower.includes('display')) return 'monitor'
-        if (lower.includes('servici') || lower.includes('service') || lower.includes('reparacion') || lower.includes('mano')) return 'service'
-        if (lower.includes('lap') || lower.includes('portatil') || lower.includes('notebook')) return 'laptop'
+        // Common mappings
+        if (lower.includes('procesador') || lower.includes('micro')) return 'cpu'
+        if (lower.includes('placa') || lower.includes('madre') || lower.includes('mother')) return 'motherboard'
+        if (lower.includes('video') || lower.includes('grafica') || lower.includes('rtx') || lower.includes('gtx') || lower.includes('radeon')) return 'gpu'
+        if (lower.includes('memoria') || lower.includes('ram')) return 'ram'
+        if (lower.includes('disco') || lower.includes('ssd') || lower.includes('hdd') || lower.includes('almacenamiento')) return 'storage'
+        if (lower.includes('fuente') || lower.includes('poder') || lower.includes('psu')) return 'psu'
+        if (lower.includes('gabinete') || lower.includes('chasis') || lower.includes('torre') || lower.includes('case')) return 'case'
+        if (lower.includes('pantalla') || lower.includes('monitor')) return 'monitor'
+        if (lower.includes('teclado') || lower.includes('mouse') || lower.includes('audifono') || lower.includes('headset') || lower.includes('silla') || lower.includes('periferico')) return 'peripheral'
+        if (lower.includes('notebook') || lower.includes('laptop') || lower.includes('portatil')) return 'laptop'
+        if (lower.includes('servicio') || lower.includes('instalacion') || lower.includes('armado')) return 'service'
+        if (lower.includes('cooler') || lower.includes('refrigeracion') || lower.includes('fan') || lower.includes('liquida')) return 'cooling'
 
-        return 'peripheral' // Fallback seguro
+        return 'peripheral' // Default fallback
     }
-
     const resolveImageField = (p: any): string | null => {
         const val = p.image_url || p.imageUrl || p.Image_url || p.image || p.imagen || p.foto || p.url || p.picture || null
         return typeof val === 'string' && val.trim().length > 0 ? val.trim() : null
@@ -184,7 +254,6 @@ export function DataTable<TData, TValue>({
     const parsePrice = (val: any): number => {
         if (typeof val === 'number') return val
         if (typeof val === 'string') {
-            // Remover $ y , (ej: "$1,200.50" -> "1200.50")
             const clean = val.replace(/[$,]/g, '')
             const num = parseFloat(clean)
             return isNaN(num) ? 0 : num
@@ -215,7 +284,6 @@ export function DataTable<TData, TValue>({
         let errorCount = 0
 
         for (const product of products) {
-            // Parse specs if it's a string (from CSV)
             let specs = {}
             if (typeof product.specs === 'string' && product.specs.trim() !== '') {
                 try {
@@ -230,12 +298,10 @@ export function DataTable<TData, TValue>({
             const category = normalizeCategory(product.category)
             const imageUrl = resolveImageField(product)
 
-            // Resolve prices
             const pricePublic = resolvePrice(product, 'public')
-            const priceCash = resolvePrice(product, 'cash') || pricePublic // Fallback to public if cash missing
+            const priceCash = resolvePrice(product, 'cash') || pricePublic
             const priceCost = resolvePrice(product, 'cost')
 
-            // Preparar datos del producto con valores por defecto
             const productData = {
                 sku: product.sku || `SKU-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
                 name: product.name || "Producto sin nombre",
@@ -298,7 +364,6 @@ export function DataTable<TData, TValue>({
             toast.error("Error al leer el archivo. Verifica el formato.")
         }
 
-        // Reset input
         if (fileInputRef.current) {
             fileInputRef.current.value = ""
         }
@@ -306,7 +371,6 @@ export function DataTable<TData, TValue>({
 
     return (
         <div>
-            {/* Hidden file input */}
             <input
                 ref={fileInputRef}
                 type="file"
@@ -316,15 +380,62 @@ export function DataTable<TData, TValue>({
             />
 
             <div className="flex items-center justify-between py-4">
-                <Input
-                    placeholder="Filtrar por nombre..."
-                    value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-                    onChange={(event) =>
-                        table.getColumn("name")?.setFilterValue(event.target.value)
-                    }
-                    className="max-w-sm"
-                />
+                {Object.keys(rowSelection).length > 0 ? (
+                    <div className="flex items-center gap-2 w-full bg-muted/30 p-2 rounded-md border border-dashed border-primary/20">
+                        <span className="text-sm font-medium pl-2">
+                            {Object.keys(rowSelection).length} seleccionados
+                        </span>
+                        <div className="flex-1" />
+                        <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={handleBulkDeactivate}
+                            className="bg-orange-100 text-orange-700 hover:bg-orange-200 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-900/50"
+                        >
+                            Desactivar
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={handleBulkDelete}
+                        >
+                            Eliminar
+                        </Button>
+                        <div className="w-px h-6 bg-border mx-2" />
+                    </div>
+                ) : (
+                    <div className="flex items-center gap-2">
+                        <Input
+                            placeholder="Filtrar por nombre..."
+                            value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+                            onChange={(event) =>
+                                table.getColumn("name")?.setFilterValue(event.target.value)
+                            }
+                            className="max-w-sm"
+                        />
+                    </div>
+                )}
+
                 <div className="flex gap-2">
+                    <div className="flex items-center border rounded-md p-1 bg-muted/20 mr-2">
+                        <Button
+                            variant={view === "list" ? "secondary" : "ghost"}
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={() => setView("list")}
+                        >
+                            <List className="h-4 w-4" />
+                        </Button>
+                        <Button
+                            variant={view === "grid" ? "secondary" : "ghost"}
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={() => setView("grid")}
+                        >
+                            <LayoutGrid className="h-4 w-4" />
+                        </Button>
+                    </div>
+
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline" disabled={isImporting}>
@@ -363,50 +474,107 @@ export function DataTable<TData, TValue>({
                     </DropdownMenu>
                 </div>
             </div>
-            <div className="rounded-md border bg-card">
-                <Table>
-                    <TableHeader>
-                        {table.getHeaderGroups().map((headerGroup) => (
-                            <TableRow key={headerGroup.id}>
-                                {headerGroup.headers.map((header) => {
-                                    return (
-                                        <TableHead key={header.id}>
-                                            {header.isPlaceholder
-                                                ? null
-                                                : flexRender(
-                                                    header.column.columnDef.header,
-                                                    header.getContext()
-                                                )}
-                                        </TableHead>
-                                    )
-                                })}
-                            </TableRow>
-                        ))}
-                    </TableHeader>
-                    <TableBody>
-                        {table.getRowModel().rows?.length ? (
-                            table.getRowModel().rows.map((row) => (
-                                <TableRow
-                                    key={row.id}
-                                    data-state={row.getIsSelected() && "selected"}
-                                >
-                                    {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id}>
-                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                        </TableCell>
-                                    ))}
+
+            {view === "list" ? (
+                <div className="rounded-md border bg-card">
+                    <Table>
+                        <TableHeader>
+                            {table.getHeaderGroups().map((headerGroup) => (
+                                <TableRow key={headerGroup.id}>
+                                    {headerGroup.headers.map((header) => {
+                                        return (
+                                            <TableHead key={header.id}>
+                                                {header.isPlaceholder
+                                                    ? null
+                                                    : flexRender(
+                                                        header.column.columnDef.header,
+                                                        header.getContext()
+                                                    )}
+                                            </TableHead>
+                                        )
+                                    })}
                                 </TableRow>
-                            ))
-                        ) : (
-                            <TableRow>
-                                <TableCell colSpan={columns.length} className="h-24 text-center">
-                                    No hay resultados.
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
+                            ))}
+                        </TableHeader>
+                        <TableBody>
+                            {table.getRowModel().rows?.length ? (
+                                table.getRowModel().rows.map((row) => (
+                                    <TableRow
+                                        key={row.id}
+                                        data-state={row.getIsSelected() && "selected"}
+                                    >
+                                        {row.getVisibleCells().map((cell) => (
+                                            <TableCell key={cell.id}>
+                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                            </TableCell>
+                                        ))}
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={columns.length} className="h-24 text-center">
+                                        No hay resultados.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    {table.getRowModel().rows?.length ? (
+                        table.getRowModel().rows.map((row) => {
+                            const product = row.original as Product
+                            return (
+                                <Card key={row.id} className="overflow-hidden flex flex-col justify-between">
+                                    <div className="aspect-square relative bg-muted/50">
+                                        {product.image_url ? (
+                                            <img
+                                                src={product.image_url}
+                                                alt={product.name}
+                                                className="w-full h-full object-cover transition-transform hover:scale-105 duration-300"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
+                                                Sin Imagen
+                                            </div>
+                                        )}
+                                        <div className="absolute top-2 right-2">
+                                            <Badge variant={product.is_active ? "default" : "secondary"}>
+                                                {product.is_active ? "Activo" : "Inactivo"}
+                                            </Badge>
+                                        </div>
+                                    </div>
+                                    <CardContent className="p-4 flex-1 flex flex-col gap-2">
+                                        <div className="flex justify-between items-start">
+                                            <Badge variant="outline" className="text-[10px] uppercase">{product.category}</Badge>
+                                            <div className="scale-75 origin-top-right -mt-1 -mr-2">
+                                                <ActionCell product={product} />
+                                            </div>
+                                        </div>
+                                        <h3 className="font-semibold text-sm line-clamp-2" title={product.name}>
+                                            {product.name}
+                                        </h3>
+                                        <div className="mt-auto flex items-center justify-between">
+                                            <span className="font-bold text-lg">
+                                                ${product.price_public.toLocaleString('es-CL')}
+                                            </span>
+                                            <span className={`text-xs ${product.stock_physical <= 2 ? "text-red-500 font-bold" : "text-muted-foreground"}`}>
+                                                Stock: {product.stock_physical}
+                                            </span>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            )
+                        })
+                    ) : (
+                        <div className="col-span-full h-24 text-center flex items-center justify-center text-muted-foreground">
+                            No hay resultados.
+                        </div>
+                    )}
+                </div>
+            )}
+
             <div className="flex items-center justify-end space-x-2 py-4">
                 <Button
                     variant="outline"

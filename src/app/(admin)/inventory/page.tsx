@@ -25,9 +25,9 @@ export default async function InventoryPage() {
     const data = await getData()
 
     return (
-        <div className="container mx-auto py-10">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold tracking-tight">Inventario de Productos</h1>
+        <section className="container mx-auto py-10 space-y-6">
+            <div className="flex justify-between items-center">
+                <h1 className="text-3xl font-bold tracking-tight">Inventario</h1>
                 <Button asChild>
                     <Link href="/inventory/new">
                         <PlusCircle className="mr-2 h-4 w-4" />
@@ -36,6 +36,6 @@ export default async function InventoryPage() {
                 </Button>
             </div>
             <DataTable columns={columns} data={data} />
-        </div>
+        </section>
     )
 }
