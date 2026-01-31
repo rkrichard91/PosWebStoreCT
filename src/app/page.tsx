@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Wrench, Monitor, ShoppingCart, ArrowRight, CheckCircle2 } from "lucide-react";
+import { PromoCarousel } from "@/components/shop/promo-carousel";
 
 export default function Home() {
   return (
@@ -19,32 +20,34 @@ export default function Home() {
           Let's check layout.tsx.
       */}
 
-      {/* Hero Section */}
-      <section className="flex flex-col items-center justify-center space-y-10 px-4 py-24 text-center md:py-32 bg-background relative overflow-hidden">
-        {/* Background Gradients */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-primary/20 blur-[120px] rounded-full pointer-events-none" />
+      {/* Promo Carousel Section */}
+      <section className="container py-8">
+        <PromoCarousel />
+      </section>
 
-        <div className="relative z-10 max-w-3xl space-y-6">
+      {/* Hero Text / Value Prop - Simplified below Carousel */}
+      <section className="flex flex-col items-center justify-center space-y-6 px-4 pb-12 text-center">
+        <div className="max-w-3xl space-y-4">
           <div className="mx-auto w-fit rounded-full border bg-background/50 px-4 py-1.5 text-sm font-medium backdrop-blur text-primary">
             🚀 Center Tecno - Lo mejor en tecnología, siempre
           </div>
-          <h1 className="text-4xl font-bold tracking-tighter sm:text-6xl md:text-7xl bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
-            Construye la PC <br /> de tus Sueños
+          <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
+            Expertos en Hardware y Servicio Técnico
           </h1>
-          <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
-            Encuentra los mejores componentes y servicio técnico especializado en Center Tecno. Calidad y confianza en cada armado.
+          <p className="mx-auto max-w-[700px] text-muted-foreground md:text-lg">
+            Encuentra los mejores componentes para tu PC Gamer y confía en nuestros expertos para reparaciones de alto nivel.
           </p>
           <div className="flex flex-col gap-4 sm:flex-row justify-center">
-            <Button size="lg" className="h-12 px-8 text-base gap-2" asChild>
+            <Button size="lg" className="h-10 px-8" asChild>
               <Link href="/builder">
-                <Monitor className="h-5 w-5" />
+                <Monitor className="h-4 w-4 mr-2" />
                 Armar PC Ahora
               </Link>
             </Button>
-            <Button size="lg" variant="outline" className="h-12 px-8 text-base gap-2" asChild>
+            <Button size="lg" variant="outline" className="h-10 px-8" asChild>
               <Link href="/catalogo">
                 Ver Catálogo
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-4 w-4 ml-2" />
               </Link>
             </Button>
           </div>
@@ -117,9 +120,9 @@ export default function Home() {
             © {new Date().getFullYear()} Center Tecno. Todos los derechos reservados.
           </p>
           <div className="flex gap-6 text-sm text-muted-foreground">
-            <Link href="#" className="hover:text-foreground">Términos</Link>
-            <Link href="#" className="hover:text-foreground">Privacidad</Link>
-            <Link href="#" className="hover:text-foreground">Contacto</Link>
+            <Link href="/terms" className="hover:text-foreground transition-colors">Términos</Link>
+            <Link href="/privacy" className="hover:text-foreground transition-colors">Privacidad</Link>
+            <Link href="/contact" className="hover:text-foreground transition-colors">Contacto</Link>
           </div>
         </div>
       </footer>

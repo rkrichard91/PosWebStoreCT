@@ -50,6 +50,9 @@ export function Navbar() {
                     <Link href="/check-repair" className="transition-colors hover:text-foreground/80 text-foreground/60">
                         Estado Orden
                     </Link>
+                    <Link href="/contact" className="transition-colors hover:text-foreground/80 text-foreground/60">
+                        Contáctanos
+                    </Link>
                 </nav>
                 <div className="flex items-center space-x-4">
                     <CartSheet />
