@@ -1,8 +1,12 @@
+"use client"
 
 import Image from 'next/image';
 import Link from 'next/link';
 import { LayoutDashboard, ShoppingCart, Package, Wrench, Settings, LogOut, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { createClient } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 const menuItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -14,6 +18,22 @@ const menuItems = [
 ];
 
 export function AdminSidebar() {
+    const router = useRouter();
+    const supabase = createClient();
+
+    const handleLogout = async () => {
+        try {
+            const { error } = await supabase.auth.signOut();
+            if (error) throw error;
+            toast.success("Sesión cerrada correctamente");
+            router.push('/login');
+            router.refresh();
+        } catch (error) {
+            console.error("Error logging out:", error);
+            toast.error("Error al cerrar sesión");
+        }
+    };
+
     return (
         <aside className="w-64 border-r bg-muted/40 hidden md:block print:hidden">
             <div className="flex h-full max-h-screen flex-col gap-2">
@@ -40,7 +60,12 @@ export function AdminSidebar() {
                     </nav>
                 </div>
                 <div className="mt-auto p-4">
-                    <Button variant="outline" className="w-full gap-2 justify-start" size="sm">
+                    <Button
+                        variant="outline"
+                        className="w-full gap-2 justify-start"
+                        size="sm"
+                        onClick={handleLogout}
+                    >
                         <LogOut className="h-4 w-4" />
                         Cerrar Sesión
                     </Button>
