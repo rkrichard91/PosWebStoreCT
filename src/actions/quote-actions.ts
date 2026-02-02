@@ -22,7 +22,7 @@ export async function submitQuote(items: Json, totalPrice: number) {
                 items: items,
                 total_price: totalPrice,
                 status: 'pending'
-            });
+            } as any);
 
         if (error) {
             console.error("Error creating quote:", error);
