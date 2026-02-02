@@ -9,9 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { formatCurrency } from "@/lib/utils";
-import { submitQuote } from "@/actions/quote-actions";
-import { useState } from "react";
-import { FileText } from "lucide-react";
 
 export function BuilderSummary() {
     const { addItem } = useCartStore();
@@ -22,8 +19,6 @@ export function BuilderSummary() {
 
     // Has critical errors?
     const hasErrors = issues.some(i => i.type === 'error');
-
-    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleAddToCart = () => {
         // Filter null values
@@ -36,32 +31,6 @@ export function BuilderSummary() {
         });
 
         toast.success("PC agregado al carrito exitosamente");
-    };
-
-    const handleSendQuote = async () => {
-        setIsSubmitting(true);
-        try {
-            // Filter null values for clean storage
-            const components = Object.values(selection).filter((c): c is NonNullable<typeof c> => c !== null);
-
-            if (components.length === 0) {
-                toast.error("Selecciona al menos un componente");
-                return;
-            }
-
-            const result = await submitQuote(selection, totalPrice);
-
-            if (result.success) {
-                toast.success(result.message);
-            } else {
-                toast.error(result.message);
-            }
-        } catch (error) {
-            console.error(error);
-            toast.error("Error al enviar la cotización");
-        } finally {
-            setIsSubmitting(false);
-        }
     };
 
     return (
@@ -81,7 +50,7 @@ export function BuilderSummary() {
                         <span className="text-primary">{formatCurrency(totalPrice)}</span>
                     </div>
                 </CardContent>
-                <CardFooter className="flex flex-col gap-2">
+                <CardFooter>
                     <Button
                         className="w-full"
                         disabled={itemsCount === 0 || hasErrors}
@@ -89,15 +58,6 @@ export function BuilderSummary() {
                     >
                         <ShoppingCart className="mr-2 h-4 w-4" />
                         Agregar al Carrito
-                    </Button>
-                    <Button
-                        variant="outline"
-                        className="w-full"
-                        disabled={itemsCount === 0 || isSubmitting}
-                        onClick={handleSendQuote}
-                    >
-                        <FileText className="mr-2 h-4 w-4" />
-                        {isSubmitting ? 'Enviando...' : 'Solicitar Cotización'}
                     </Button>
                 </CardFooter>
             </Card>

@@ -96,23 +96,6 @@ export interface Database {
                 }
                 Update: Partial<Database['public']['Tables']['repairs']['Insert']>
             }
-            quotes: {
-                Row: {
-                    id: string
-                    user_id: string
-                    items: Json
-                    total_price: number
-                    status: string
-                    created_at: string
-                    updated_at: string
-                }
-                Insert: Omit<Database['public']['Tables']['quotes']['Row'], 'id' | 'created_at' | 'updated_at'> & {
-                    id?: string
-                    created_at?: string
-                    updated_at?: string
-                }
-                Update: Partial<Database['public']['Tables']['quotes']['Insert']>
-            }
         }
     }
 }
