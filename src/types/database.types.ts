@@ -95,7 +95,7 @@ export interface Database {
                     updated_at?: string
                 }
                 Update: Partial<Database['public']['Tables']['repairs']['Insert']>
-            },
+            }
             quotes: {
                 Row: {
                     id: string

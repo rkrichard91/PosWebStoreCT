@@ -2,9 +2,9 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { Json } from "@/types/database.types";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function submitQuote(items: any, totalPrice: number) {
+export async function submitQuote(items: Json, totalPrice: number) {
     const supabase = await createClient();
 
     // Check if user is logged in
