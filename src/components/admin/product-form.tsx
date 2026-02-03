@@ -495,7 +495,11 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                             <FormItem>
                                 <FormLabel>Precio Público</FormLabel>
                                 <FormControl>
-                                    <Input type="number" {...field} />
+                                    <Input
+                                        type="number"
+                                        {...field}
+                                        onChange={e => field.onChange(parseFloat(e.target.value))}
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -508,7 +512,11 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                             <FormItem>
                                 <FormLabel>Precio Efectivo</FormLabel>
                                 <FormControl>
-                                    <Input type="number" {...field} />
+                                    <Input
+                                        type="number"
+                                        {...field}
+                                        onChange={e => field.onChange(parseFloat(e.target.value))}
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -542,7 +550,11 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                             <FormItem>
                                 <FormLabel>Stock Físico</FormLabel>
                                 <FormControl>
-                                    <Input type="number" {...field} />
+                                    <Input
+                                        type="number"
+                                        {...field}
+                                        onChange={e => field.onChange(Number(e.target.value))}
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -555,7 +567,11 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                             <FormItem>
                                 <FormLabel>Alerta Stock Mínimo</FormLabel>
                                 <FormControl>
-                                    <Input type="number" {...field} />
+                                    <Input
+                                        type="number"
+                                        {...field}
+                                        onChange={e => field.onChange(Number(e.target.value))}
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
