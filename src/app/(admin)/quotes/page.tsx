@@ -1,10 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
-import { Plus, FileText, Calendar, DollarSign, User } from "lucide-react";
+import { Plus, FileText, Calendar, User } from "lucide-react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
 
 export const metadata = {
@@ -12,15 +11,25 @@ export const metadata = {
     description: "Gestión de cotizaciones",
 };
 
+interface Quote {
+    id: string;
+    customer_data: { name?: string } | null;
+    total: number;
+    created_at: string;
+    status: string | null;
+}
+
 export default async function QuotesPage() {
     const supabase = await createClient();
 
     // Fetch quotes (orders with status 'quote')
-    const { data: quotes, error } = await (supabase
-        .from("orders") as any)
+    const { data, error } = await supabase
+        .from("orders")
         .select("*")
         .eq("status", "quote")
         .order("created_at", { ascending: false });
+
+    const quotes = data as unknown as Quote[] | null;
 
     if (error) {
         console.error("Error fetching quotes:", error);
@@ -63,9 +72,9 @@ export default async function QuotesPage() {
                                     </TableCell>
                                 </TableRow>
                             ) : (
-                                quotes.map((quote: any) => {
-                                    // Parse customer data if it exists (JSONB)
-                                    const customerName = (quote.customer_data as any)?.name || "Cliente General";
+                                quotes.map((quote) => {
+                                    // Parse customer data if it exists
+                                    const customerName = quote.customer_data?.name || "Cliente General";
 
                                     return (
                                         <TableRow key={quote.id}>
@@ -91,9 +100,7 @@ export default async function QuotesPage() {
                                                 {formatCurrency(quote.total)}
                                             </TableCell>
                                             <TableCell className="text-right">
-                                                {/* <Button variant="ghost" size="sm" asChild>
-                                                    <Link href={`/quotes/${quote.id}`}>Ver</Link>
-                                                </Button> */}
+                                                {/* Actions placeholder */}
                                             </TableCell>
                                         </TableRow>
                                     )
