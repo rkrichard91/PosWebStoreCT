@@ -13,11 +13,11 @@ export const metadata = {
 };
 
 export default async function QuotesPage() {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     // Fetch quotes (orders with status 'quote')
-    const { data: quotes, error } = await supabase
-        .from("orders")
+    const { data: quotes, error } = await (supabase
+        .from("orders") as any)
         .select("*")
         .eq("status", "quote")
         .order("created_at", { ascending: false });
@@ -63,7 +63,7 @@ export default async function QuotesPage() {
                                     </TableCell>
                                 </TableRow>
                             ) : (
-                                quotes.map((quote) => {
+                                quotes.map((quote: any) => {
                                     // Parse customer data if it exists (JSONB)
                                     const customerName = (quote.customer_data as any)?.name || "Cliente General";
 
