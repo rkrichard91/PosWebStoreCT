@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,8 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { Plus, Pencil, Trash2, ArrowLeft, Eye, EyeOff, Upload, X, ImageIcon } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 interface Banner {
     id: string;
@@ -52,6 +53,8 @@ export default function BannersPage() {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
     const [formData, setFormData] = useState(emptyBanner);
+    const [uploading, setUploading] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
 
     const supabase = createClient();
 
@@ -75,6 +78,76 @@ export default function BannersPage() {
     useEffect(() => {
         fetchBanners();
         // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const uploadImage = async (file: File) => {
+        if (!file.type.startsWith("image/")) {
+            toast.error("Solo se permiten imágenes");
+            return null;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error("La imagen no debe superar 5MB");
+            return null;
+        }
+
+        setUploading(true);
+        try {
+            const fileExt = file.name.split(".").pop();
+            const fileName = `banner_${Date.now()}.${fileExt}`;
+            const filePath = `banners/${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from("products")
+                .upload(filePath, file, { upsert: true });
+
+            if (uploadError) {
+                console.error(uploadError);
+                toast.error("Error al subir la imagen");
+                return null;
+            }
+
+            const { data: urlData } = supabase.storage
+                .from("products")
+                .getPublicUrl(filePath);
+
+            return urlData.publicUrl;
+        } catch (error) {
+            console.error(error);
+            toast.error("Error al subir la imagen");
+            return null;
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const handleFileSelect = async (file: File) => {
+        const url = await uploadImage(file);
+        if (url) {
+            setFormData({ ...formData, image_url: url });
+            toast.success("Imagen subida correctamente");
+        }
+    };
+
+    const handleDrop = useCallback(async (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(false);
+
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            await handleFileSelect(file);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [formData]);
+
+    const handleDragOver = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(true);
+    }, []);
+
+    const handleDragLeave = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(false);
     }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -168,6 +241,10 @@ export default function BannersPage() {
         setDialogOpen(true);
     };
 
+    const clearImage = () => {
+        setFormData({ ...formData, image_url: "" });
+    };
+
     return (
         <div className="flex-1 space-y-4 p-8 pt-6">
             <div className="flex items-center justify-between">
@@ -186,7 +263,7 @@ export default function BannersPage() {
                             Nuevo Banner
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-2xl">
+                    <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
                             <DialogTitle>
                                 {editingBanner ? "Editar Banner" : "Nuevo Banner"}
@@ -213,11 +290,85 @@ export default function BannersPage() {
                                 />
                             </div>
 
+                            {/* Image Upload Section */}
                             <div className="space-y-2">
-                                <Label htmlFor="image_url">URL de Imagen (opcional)</Label>
+                                <Label>Imagen del Banner</Label>
+
+                                {formData.image_url ? (
+                                    <div className="relative rounded-lg overflow-hidden border">
+                                        <div className="relative h-40 w-full">
+                                            <Image
+                                                src={formData.image_url}
+                                                alt="Banner preview"
+                                                fill
+                                                className="object-cover"
+                                            />
+                                        </div>
+                                        <div className="absolute top-2 right-2 flex gap-2">
+                                            <Button
+                                                type="button"
+                                                size="icon"
+                                                variant="destructive"
+                                                onClick={clearImage}
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                        <div className="p-2 bg-muted/80 text-xs truncate">
+                                            {formData.image_url}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div
+                                        onDrop={handleDrop}
+                                        onDragOver={handleDragOver}
+                                        onDragLeave={handleDragLeave}
+                                        className={`
+                                            border-2 border-dashed rounded-lg p-8 text-center cursor-pointer
+                                            transition-colors duration-200
+                                            ${isDragging ? 'border-primary bg-primary/5' : 'border-muted-foreground/25 hover:border-primary/50'}
+                                            ${uploading ? 'pointer-events-none opacity-50' : ''}
+                                        `}
+                                    >
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) handleFileSelect(file);
+                                            }}
+                                            className="hidden"
+                                            id="banner-image-input"
+                                        />
+                                        <label htmlFor="banner-image-input" className="cursor-pointer">
+                                            <div className="flex flex-col items-center gap-2">
+                                                {uploading ? (
+                                                    <>
+                                                        <div className="animate-spin h-10 w-10 border-2 border-primary border-t-transparent rounded-full" />
+                                                        <p className="text-sm text-muted-foreground">Subiendo...</p>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                                                            <Upload className="h-6 w-6 text-primary" />
+                                                        </div>
+                                                        <p className="text-sm font-medium">Arrastra una imagen aquí</p>
+                                                        <p className="text-xs text-muted-foreground">
+                                                            o haz clic para seleccionar (máx. 5MB)
+                                                        </p>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </label>
+                                    </div>
+                                )}
+
+                                {/* URL Input as alternative */}
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                    <span>— o usa una URL directa —</span>
+                                </div>
                                 <Input
-                                    id="image_url"
-                                    placeholder="https://..."
+                                    placeholder="https://ejemplo.com/imagen.jpg"
                                     value={formData.image_url}
                                     onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
                                 />
@@ -280,7 +431,7 @@ export default function BannersPage() {
                                 <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                                     Cancelar
                                 </Button>
-                                <Button type="submit">
+                                <Button type="submit" disabled={uploading}>
                                     {editingBanner ? "Guardar Cambios" : "Crear Banner"}
                                 </Button>
                             </div>
@@ -303,6 +454,7 @@ export default function BannersPage() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead className="w-[50px]">Orden</TableHead>
+                                    <TableHead className="w-[80px]">Imagen</TableHead>
                                     <TableHead>Título</TableHead>
                                     <TableHead>Color</TableHead>
                                     <TableHead>Estado</TableHead>
@@ -314,9 +466,25 @@ export default function BannersPage() {
                                     <TableRow key={banner.id}>
                                         <TableCell className="font-mono">{banner.sort_order}</TableCell>
                                         <TableCell>
+                                            {banner.image_url ? (
+                                                <div className="relative h-10 w-16 rounded overflow-hidden">
+                                                    <Image
+                                                        src={banner.image_url}
+                                                        alt={banner.title}
+                                                        fill
+                                                        className="object-cover"
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <div className="h-10 w-16 rounded bg-muted flex items-center justify-center">
+                                                    <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                                                </div>
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
                                             <div>
                                                 <p className="font-medium">{banner.title}</p>
-                                                <p className="text-xs text-muted-foreground truncate max-w-[300px]">
+                                                <p className="text-xs text-muted-foreground truncate max-w-[200px]">
                                                     {banner.description}
                                                 </p>
                                             </div>
