@@ -35,11 +35,11 @@ const productSchema = z.object({
         "laptop", "cpu", "gpu", "motherboard", "ram", "storage",
         "psu", "case", "monitor", "peripheral", "service", "cooling"
     ]),
-    price_public: z.number().min(0),
-    price_cash: z.number().min(0),
-    cost_price: z.number().nullable().optional(),
-    stock_physical: z.number().int().min(0),
-    min_stock_alert: z.number().int().min(0),
+    price_public: z.coerce.number().min(0),
+    price_cash: z.coerce.number().min(0),
+    cost_price: z.coerce.number().nullable().optional(),
+    stock_physical: z.coerce.number().int().min(0),
+    min_stock_alert: z.coerce.number().int().min(0),
     is_active: z.boolean().default(true),
     image_url: z.string().nullable().optional(),
     description: z.string().nullable().optional(),
@@ -498,7 +498,6 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                                     <Input
                                         type="number"
                                         {...field}
-                                        onChange={e => field.onChange(parseFloat(e.target.value))}
                                     />
                                 </FormControl>
                                 <FormMessage />
@@ -515,7 +514,6 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                                     <Input
                                         type="number"
                                         {...field}
-                                        onChange={e => field.onChange(parseFloat(e.target.value))}
                                     />
                                 </FormControl>
                                 <FormMessage />
@@ -533,7 +531,7 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                                         type="number"
                                         {...field}
                                         value={field.value || 0}
-                                        onChange={e => field.onChange(parseFloat(e.target.value))}
+                                        onChange={e => field.onChange(e.target.value)}
                                     />
                                 </FormControl>
                                 <FormMessage />
@@ -553,7 +551,6 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                                     <Input
                                         type="number"
                                         {...field}
-                                        onChange={e => field.onChange(Number(e.target.value))}
                                     />
                                 </FormControl>
                                 <FormMessage />
@@ -570,7 +567,6 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                                     <Input
                                         type="number"
                                         {...field}
-                                        onChange={e => field.onChange(Number(e.target.value))}
                                     />
                                 </FormControl>
                                 <FormMessage />
