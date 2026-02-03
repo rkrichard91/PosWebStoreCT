@@ -437,8 +437,10 @@ export default function CreateQuotePage() {
                                 </div>
                                 <div className="text-sm text-muted-foreground mt-2">
                                     <p>Center Tecno</p>
-                                    <p>RUC: 123456789001</p>
-                                    <p>Telf: (09) 1234-5678</p>
+                                    <p>RUC: 0993404554001</p>
+                                    <p>Telf: +593 99 809 4487</p>
+                                    <p>Mucho Lote 2, Urb. Valle Victoria</p>
+                                    <p>Mz 2841 V1, Local 7</p>
                                 </div>
                             </div>
                             <div className="text-right space-y-1">

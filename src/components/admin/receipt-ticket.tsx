@@ -28,9 +28,11 @@ export const ReceiptTicket = React.forwardRef<HTMLDivElement, ReceiptTicketProps
             {/* Header */}
             <div className="text-center mb-4">
                 <h1 className="font-bold text-xl uppercase tracking-widest">Center Tecno</h1>
-                <p>RUT: 76.123.456-K</p>
-                <p>Av. Tecnología 123, Santiago</p>
-                <p>Tel: +56 9 1234 5678</p>
+                <p>RUC: 0993404554001</p>
+                <p>Mucho Lote 2, Urb. Valle Victoria</p>
+                <p>Mz 2841 V1, Local 7</p>
+                <p>Tel: +593 99 809 4487</p>
+                <p>admin@center-tecno.com</p>
                 <hr className="my-2 border-black border-dashed" />
                 <p className="font-bold">TICKET #{order.ticket_number}</p>
                 <p>{new Date(order.created_at).toLocaleString()}</p>
