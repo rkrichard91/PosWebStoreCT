@@ -143,10 +143,7 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                             {...field}
 
                             value={field.value || ""}
-                            onChange={(e) => {
-                                const val = type === 'number' ? parseFloat(e.target.value) : e.target.value;
-                                field.onChange(val);
-                            }}
+                            onChange={field.onChange}
                         />
                     </FormControl>
                     <FormMessage />
