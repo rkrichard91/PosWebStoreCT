@@ -16,7 +16,7 @@ export interface Database {
                     name: string
                     slug: string
                     description: string | null
-                    category: 'laptop' | 'cpu' | 'gpu' | 'motherboard' | 'ram' | 'storage' | 'psu' | 'case' | 'peripheral' | 'monitor' | 'service'
+                    category: 'laptop' | 'cpu' | 'gpu' | 'motherboard' | 'ram' | 'storage' | 'psu' | 'case' | 'peripheral' | 'monitor' | 'service' | 'cooling'
                     price_public: number
                     price_cash: number
                     cost_price: number

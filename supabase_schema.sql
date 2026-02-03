@@ -1,5 +1,5 @@
 -- 1. TIPOS ENUMERADOS
-create type product_category as enum ('laptop', 'cpu', 'gpu', 'motherboard', 'ram', 'storage', 'psu', 'case', 'peripheral', 'monitor', 'service');
+create type product_category as enum ('laptop', 'cpu', 'gpu', 'motherboard', 'ram', 'storage', 'psu', 'case', 'peripheral', 'monitor', 'service', 'cooling');
 create type repair_status as enum ('received', 'diagnosing', 'waiting_parts', 'approved', 'repaired', 'delivered');
 create type order_origin as enum ('web', 'pos');
 
