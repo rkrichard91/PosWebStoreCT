@@ -427,32 +427,40 @@ export default function CreateQuotePage() {
                 {/* RIGHT/Main Area: Quote Details */}
                 <div className="space-y-6" id="printable-quote-section">
                     <Card className="h-full flex flex-col min-h-[500px] border shadow-sm print:border-none print:shadow-none">
-                        <CardHeader className="flex flex-row justify-between items-start border-b bg-muted/10 pb-6 print:pb-2 print:pt-0">
-                            <div className="space-y-2">
-                                <div className="flex items-center gap-3">
-                                    <div className="h-10 w-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                                        <span className="font-bold text-primary text-xl">CT</span>
-                                    </div>
-                                    <CardTitle className="text-2xl">Cotización</CardTitle>
+                        <CardHeader className="border-b bg-muted/10 pb-6 print:pb-2 print:pt-0">
+                            {/* Header con logo, título centrado y datos */}
+                            <div className="flex items-start justify-between">
+                                {/* Logo a la izquierda */}
+                                <div className="flex-shrink-0">
+                                    <img src="/logo.png" alt="Center Tecno" className="h-20 w-auto object-contain" />
                                 </div>
-                                <div className="text-sm text-muted-foreground mt-2">
-                                    <p>Center Tecno</p>
-                                    <p>RUC: 0993404554001</p>
-                                    <p>Telf: +593 99 809 4487</p>
-                                    <p>Mucho Lote 2, Urb. Valle Victoria</p>
-                                    <p>Mz 2841 V1, Local 7</p>
+
+                                {/* Título centrado */}
+                                <div className="flex-1 text-center">
+                                    <CardTitle className="text-3xl font-bold uppercase tracking-wide">Cotización</CardTitle>
+                                    <p className="text-sm text-muted-foreground mt-1">Fecha: {new Date().toLocaleDateString()}</p>
+                                </div>
+
+                                {/* Datos del cliente a la derecha */}
+                                <div className="text-right text-sm flex-shrink-0 max-w-[200px]">
+                                    {form.getValues("name") ? (
+                                        <div className="border rounded p-2 bg-muted/20 print:border-none print:px-0 print:bg-transparent">
+                                            <p className="font-bold">{form.getValues("name")}</p>
+                                            <p>{form.getValues("doc_number")}</p>
+                                            <p>{form.getValues("email")}</p>
+                                            <p>{form.getValues("phone")}</p>
+                                        </div>
+                                    ) : (
+                                        <p className="text-muted-foreground italic">Cliente sin especificar</p>
+                                    )}
                                 </div>
                             </div>
-                            <div className="text-right space-y-1">
-                                <p className="text-sm text-muted-foreground">Fecha: {new Date().toLocaleDateString()}</p>
-                                {form.getValues("name") && (
-                                    <div className="mt-4 text-left border rounded p-2 text-sm max-w-[200px] ml-auto bg-muted/20 print:border-none print:px-0 print:bg-transparent">
-                                        <p className="font-bold">{form.getValues("name")}</p>
-                                        <p>{form.getValues("doc_number")}</p>
-                                        <p>{form.getValues("email")}</p>
-                                        <p>{form.getValues("phone")}</p>
-                                    </div>
-                                )}
+
+                            {/* Datos de la empresa debajo del header */}
+                            <div className="text-xs text-muted-foreground text-center mt-4 pt-4 border-t">
+                                <p className="font-semibold">Center Tecno - Lo mejor en tecnología siempre</p>
+                                <p>Mucho Lote 2, Urb. Valle Victoria, Mz 2841 V1, Local 7 | RUC: 0993404554001</p>
+                                <p>Telf: +593 99 809 4487 | admin@center-tecno.com</p>
                             </div>
                         </CardHeader>
 
