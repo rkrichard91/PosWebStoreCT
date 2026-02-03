@@ -118,3 +118,28 @@ insert into storage.buckets (id, name, public) values ('products', 'products', t
 create policy "Public Access" on storage.objects for select using ( bucket_id = 'products' );
 create policy "Auth Upload" on storage.objects for insert with check ( bucket_id = 'products' and auth.role() = 'authenticated' );
 create policy "Auth Delete" on storage.objects for delete using ( bucket_id = 'products' and auth.role() = 'authenticated' );
+
+-- 8. TABLA DE BANNERS (Configuración de Promociones)
+create table site_banners (
+    id uuid default gen_random_uuid() primary key,
+    title text not null,
+    description text,
+    image_url text,
+    whatsapp_message text,
+    gradient_color text default 'from-purple-600 to-indigo-600',
+    is_active boolean default true,
+    sort_order int default 0,
+    created_at timestamptz default now(),
+    updated_at timestamptz default now()
+);
+
+-- Políticas para banners
+alter table site_banners enable row level security;
+create policy "Public Read Banners" on site_banners for select using (is_active = true);
+create policy "Admin Manage Banners" on site_banners for all using (auth.jwt() ->> 'role' in ('admin', 'superadmin'));
+
+-- Insertar banners de ejemplo
+insert into site_banners (title, description, whatsapp_message, gradient_color, sort_order) values
+('Gran Oferta en Tarjetas Gráficas', 'Lleva tu gaming al siguiente nivel con RTX Series 40. ¡10% de descuento en efectivo!', 'Hola Center Tecno, vi la promoción de Tarjetas Gráficas en su web.', 'from-purple-600 to-indigo-600', 1),
+('Mantenimiento Preventivo 2x1', 'Trae tu PC y la de un amigo. Mantenimiento completo con pasta térmica de alta gama.', 'Hola Center Tecno, quiero agendar la promo de Mantenimiento 2x1.', 'from-blue-600 to-cyan-600', 2),
+('Arma tu PC Gamer', 'Asesoría gratuita y ensamblaje premium incluido en builds completas.', 'Hola, quiero cotizar una PC Gamer completa con la promoción de ensamblaje incluido.', 'from-orange-600 to-red-600', 3);
