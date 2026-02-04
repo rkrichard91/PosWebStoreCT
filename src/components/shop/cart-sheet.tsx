@@ -34,7 +34,7 @@ export function CartSheet() {
 
     // Lógica para generar enlace de WhatsApp
     const handleWhatsAppCheckout = () => {
-        const phoneNumber = "56912345678"; // Reemplazar con variable de entorno o config real
+        const phoneNumber = "593998094487"; // Center Tecno WhatsApp
         let message = `Hola! 👋 Quiero realizar el siguiente pedido:\n\n`;
 
         items.forEach(item => {
