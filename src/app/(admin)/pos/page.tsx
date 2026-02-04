@@ -251,18 +251,7 @@ export default function PosPage() {
                             {items.map(item => (
                                 <div key={item.id} className="flex gap-3 text-sm items-center border-b pb-2 last:border-0 last:pb-0">
                                     {/* Cart Item Thumbnail */}
-                                    <div className="h-10 w-10 rounded-md bg-muted overflow-hidden shrink-0 flex items-center justify-center border">
-                                        {item.image_url ? (
-                                            <Image
-                                                src={item.image_url}
-                                                alt={item.name}
-                                                fill
-                                                className="object-cover"
-                                            />
-                                        ) : (
-                                            <ImageIcon className="h-5 w-5 text-muted-foreground/50" />
-                                        )}
-                                    </div>
+
 
                                     <div className="flex-1 min-w-0">
                                         <div className="font-medium line-clamp-1" title={item.name}>{item.name}</div>
