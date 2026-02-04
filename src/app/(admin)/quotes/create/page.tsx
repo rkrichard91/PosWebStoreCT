@@ -292,8 +292,7 @@ export default function CreateQuotePage() {
                 order_id: order.id,
                 product_id: item.id, // Now all items have IDs
                 quantity: item.quantity,
-                unit_price: item.price,
-                subtotal: item.price * item.quantity
+                unit_price: item.price
             }));
 
 
