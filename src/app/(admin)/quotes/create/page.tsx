@@ -89,12 +89,19 @@ export default function CreateQuotePage() {
         if (data) setSearchResults(data);
     };
 
+    const TAX_RATE = 0.15; // 15% IVA
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const addProductItem = (product: any) => {
         const cost = product.cost_price || 0;
         const price = product.price_public || 0;
-        // Calculate initial margin % based on price and cost. Margin = (Price - Cost) / Cost
-        const marginVal = cost > 0 ? ((price - cost) / cost) * 100 : 0;
+
+        // Calculate margin based on Inventory Logic: Price = Cost * (1 + Margin) * (1 + Tax)
+        // Margin = (Price / (Cost * (1 + Tax))) - 1
+        let marginVal = 0;
+        if (cost > 0) {
+            marginVal = ((price / (cost * (1 + TAX_RATE))) - 1) * 100;
+        }
 
         const newItem: QuoteItem = {
             id: product.id,
@@ -121,7 +128,12 @@ export default function CreateQuotePage() {
 
         const costVal = parseFloat(customItem.cost) || 0;
         const priceVal = parseFloat(customItem.price) || 0;
-        const marginVal = costVal > 0 ? ((priceVal - costVal) / costVal) * 100 : 0;
+
+        // Calculate margin logic
+        let marginVal = 0;
+        if (costVal > 0) {
+            marginVal = ((priceVal / (costVal * (1 + TAX_RATE))) - 1) * 100;
+        }
 
         const newItem: QuoteItem = {
             name: customItem.name,
@@ -154,27 +166,26 @@ export default function CreateQuotePage() {
         if (field === 'quantity') {
             item.quantity = Math.max(1, parseInt(value) || 1);
         } else if (field === 'price') {
-            // If price changes, recalculate margin
+            // Recalculate Margin: M = (P / (C * 1.15)) - 1
             const newPrice = parseFloat(value) || 0;
             item.price = newPrice;
             if (item.cost > 0) {
-                item.margin = (((newPrice - item.cost) / item.cost) * 100).toFixed(2);
+                const m = ((newPrice / (item.cost * (1 + TAX_RATE))) - 1) * 100;
+                item.margin = m.toFixed(2);
             }
         } else if (field === 'margin') {
-            // If margin changes, recalculate price
-            // Margin is percentage markup on cost: Price = Cost * (1 + Margin/100)
+            // Recalculate Price: P = C * (1 + M) * 1.15
             const newMargin = parseFloat(value) || 0;
             item.margin = value; // Keep string input
             if (item.cost > 0) {
-                item.price = item.cost * (1 + (newMargin / 100));
+                item.price = item.cost * (1 + (newMargin / 100)) * (1 + TAX_RATE);
             }
         } else if (field === 'cost') {
-            // If cost changes, keep margin, recalc price? Or keep price, recalc margin?
-            // Usually cost changes from supplier -> we might want to keep margin stable -> update price
+            // If cost changes, keep margin, recalc price using new cost
             const newCost = parseFloat(value) || 0;
             item.cost = newCost;
             const currentMargin = parseFloat(item.margin || "0");
-            item.price = newCost * (1 + (currentMargin / 100));
+            item.price = newCost * (1 + (currentMargin / 100)) * (1 + TAX_RATE);
         }
 
         setItems(newItems);
