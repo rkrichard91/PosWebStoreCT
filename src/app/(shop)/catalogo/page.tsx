@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { Product } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -167,42 +166,38 @@ export default function CatalogoPage() {
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                             {filteredProducts.map(product => (
-                                <Card key={product.id} className="flex flex-col h-full overflow-hidden hover:shadow-md transition-all duration-200 group">
-                                    <Link href={`/catalogo/${product.slug}`} className="block">
-                                        <div className="aspect-square bg-muted relative overflow-hidden">
-                                            {product.image_url ? (
-                                                <Image
-                                                    src={product.image_url}
-                                                    alt={product.name}
-                                                    fill
-                                                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">
-                                                    <PackageOpen className="h-10 w-10" />
-                                                </div>
-                                            )}
+                                <Card key={product.id} className="flex flex-col h-full overflow-hidden hover:shadow-md transition-all duration-200">
+                                    <div className="aspect-square bg-muted relative overflow-hidden group">
+                                        {product.image_url ? (
+                                            <Image
+                                                src={product.image_url}
+                                                alt={product.name}
+                                                fill
+                                                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">
+                                                <PackageOpen className="h-10 w-10" />
+                                            </div>
+                                        )}
 
-                                            {product.stock_physical <= 0 && (
-                                                <div className="absolute inset-0 bg-background/60 backdrop-blur-[1px] flex items-center justify-center">
-                                                    <Badge variant="outline" className="bg-background font-bold border-destructive text-destructive">
-                                                        Agotado
-                                                    </Badge>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </Link>
+                                        {product.stock_physical <= 0 && (
+                                            <div className="absolute inset-0 bg-background/60 backdrop-blur-[1px] flex items-center justify-center">
+                                                <Badge variant="outline" className="bg-background font-bold border-destructive text-destructive">
+                                                    Agotado
+                                                </Badge>
+                                            </div>
+                                        )}
+                                    </div>
 
                                     <CardContent className="flex-1 p-4 flex flex-col">
                                         <div className="mb-2">
                                             <p className="text-[10px] text-muted-foreground uppercase bg-muted w-fit px-1.5 py-0.5 rounded mb-2">
                                                 {product.category || 'General'}
                                             </p>
-                                            <Link href={`/catalogo/${product.slug}`}>
-                                                <h3 className="font-semibold text-sm leading-tight line-clamp-2 h-10 hover:text-primary transition-colors" title={product.name}>
-                                                    {product.name}
-                                                </h3>
-                                            </Link>
+                                            <h3 className="font-semibold text-sm leading-tight line-clamp-2 h-10" title={product.name}>
+                                                {product.name}
+                                            </h3>
                                         </div>
 
                                         <div className="mt-auto pt-3 flex items-center justify-between">
@@ -213,11 +208,7 @@ export default function CatalogoPage() {
                                                 size="icon"
                                                 variant="secondary"
                                                 className="h-8 w-8 rounded-full"
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    e.stopPropagation();
-                                                    handleAddToCart(product);
-                                                }}
+                                                onClick={() => handleAddToCart(product)}
                                                 disabled={product.stock_physical <= 0}
                                             >
                                                 <ShoppingCart className="h-4 w-4" />
