@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -57,12 +57,17 @@ export default function CreateQuotePage() {
     // Custom Item State
     const [customItem, setCustomItem] = useState({
         name: "",
-        cost: "",
-        price: "", // Can be auto-calc if margin added, but simplified for manual input
         sku: "",
         image_url: "",
         addToCatalog: false
     });
+
+    // Calculator State (for manual items)
+    const [calcCost, setCalcCost] = useState<string>("");
+    const [taxIncluded, setTaxIncluded] = useState<boolean>(true);
+    const [profitMargin, setProfitMargin] = useState<string>("30");
+    const [calculatedNetCost, setCalculatedNetCost] = useState<number>(0);
+    const [calculatedPrice, setCalculatedPrice] = useState<number>(0);
 
     const form = useForm<z.infer<typeof customerSchema>>({
         resolver: zodResolver(customerSchema),
@@ -74,6 +79,33 @@ export default function CreateQuotePage() {
             address: "",
         },
     });
+
+    // Calculator Logic (for manual items) - Auto-calculate price from cost + margin
+    React.useEffect(() => {
+        const inputCost = parseFloat(calcCost);
+        const margin = parseFloat(profitMargin);
+        const tax = 0.15; // 15% IVA
+
+        if (!isNaN(inputCost) && !isNaN(margin) && inputCost > 0) {
+            // 1. Normalize Cost (Net Cost)
+            // If tax included: Net = Input / (1 + TaxRate)
+            // If tax not included: Net = Input
+            let netCost = inputCost;
+            if (taxIncluded) {
+                netCost = inputCost / (1 + tax);
+            }
+
+            // 2. Calculate Sale Price (Net)
+            // Price = NetCost * (1 + Margin/100)
+            const salePrice = netCost * (1 + (margin / 100));
+
+            setCalculatedNetCost(parseFloat(netCost.toFixed(2)));
+            setCalculatedPrice(parseFloat(salePrice.toFixed(2)));
+        } else {
+            setCalculatedNetCost(0);
+            setCalculatedPrice(0);
+        }
+    }, [calcCost, taxIncluded, profitMargin]);
 
     // --- SEARCH FUNCTIONS ---
     const handleSearch = async () => {
@@ -118,33 +150,30 @@ export default function CreateQuotePage() {
 
     // --- CUSTOM ITEM FUNCTIONS ---
     const addCustomItem = () => {
-        if (!customItem.name || !customItem.price) {
-            toast.error("Nombre y precio son requeridos para ítems manuales");
+        if (!customItem.name || calculatedPrice <= 0) {
+            toast.error("Nombre y costo son requeridos para ítems manuales");
             return;
-        }
-
-        const costVal = parseFloat(customItem.cost) || 0;
-        const priceVal = parseFloat(customItem.price) || 0;
-
-        // Calculate margin simple
-        let marginVal = 0;
-        if (costVal > 0) {
-            marginVal = ((priceVal - costVal) / costVal) * 100;
         }
 
         const newItem: QuoteItem = {
             name: customItem.name,
             sku: customItem.sku || "MANUAL",
-            cost: costVal,
-            price: priceVal,
+            cost: calculatedNetCost,
+            price: calculatedPrice,
             quantity: 1,
-            margin: marginVal.toFixed(2),
+            margin: profitMargin,
             image_url: customItem.image_url,
             is_custom: true,
             add_to_catalog: customItem.addToCatalog
         };
         setItems([...items, newItem]);
-        setCustomItem({ name: "", cost: "", price: "", sku: "", image_url: "", addToCatalog: false }); // Reset
+
+        // Reset all fields
+        setCustomItem({ name: "", sku: "", image_url: "", addToCatalog: false });
+        setCalcCost("");
+        setProfitMargin("30");
+        setTaxIncluded(true);
+
         toast.success("Ítem manual agregado");
     };
 
@@ -410,16 +439,58 @@ export default function CreateQuotePage() {
 
                                 <div className="space-y-3">
                                     <Input placeholder="Descripción Ítem" value={customItem.name} onChange={e => setCustomItem({ ...customItem, name: e.target.value })} />
-                                    <div className="grid grid-cols-2 gap-2">
+
+                                    {/* Calculator Section */}
+                                    <div className="border border-blue-200 dark:border-blue-900 bg-blue-50/50 dark:bg-blue-900/10 rounded-lg p-3 space-y-3">
                                         <div className="space-y-1">
-                                            <Label className="text-xs">Costo ($)</Label>
-                                            <Input type="number" value={customItem.cost} onChange={e => setCustomItem({ ...customItem, cost: e.target.value })} placeholder="0.00" />
+                                            <Label className="text-xs">Costo Ingresado (Factura) $</Label>
+                                            <Input
+                                                type="number"
+                                                value={calcCost}
+                                                onChange={e => setCalcCost(e.target.value)}
+                                                placeholder="0.00"
+                                                className="bg-white dark:bg-slate-950"
+                                            />
                                         </div>
+
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <Switch
+                                                    checked={taxIncluded}
+                                                    onCheckedChange={setTaxIncluded}
+                                                    id="tax-included-quote"
+                                                />
+                                                <Label htmlFor="tax-included-quote" className="cursor-pointer text-xs">
+                                                    ¿IVA Incluido en Costo?
+                                                </Label>
+                                            </div>
+                                        </div>
+
                                         <div className="space-y-1">
-                                            <Label className="text-xs">Venta ($)</Label>
-                                            <Input type="number" value={customItem.price} onChange={e => setCustomItem({ ...customItem, price: e.target.value })} placeholder="0.00" />
+                                            <Label className="text-xs">Margen Ganancia (%)</Label>
+                                            <Input
+                                                type="number"
+                                                value={profitMargin}
+                                                onChange={e => setProfitMargin(e.target.value)}
+                                                placeholder="30"
+                                                className="bg-white dark:bg-slate-950"
+                                            />
                                         </div>
+
+                                        {calculatedPrice > 0 && (
+                                            <div className="pt-2 border-t border-blue-200 dark:border-blue-900 space-y-1 text-sm">
+                                                <div className="flex justify-between">
+                                                    <span className="text-muted-foreground">Costo Neto:</span>
+                                                    <span className="font-medium">{formatCurrency(calculatedNetCost)}</span>
+                                                </div>
+                                                <div className="flex justify-between text-green-600 font-bold">
+                                                    <span>Precio Venta:</span>
+                                                    <span>{formatCurrency(calculatedPrice)}</span>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
+
                                     <Input placeholder="URL de Imagen (Opcional)" value={customItem.image_url} onChange={e => setCustomItem({ ...customItem, image_url: e.target.value })} />
                                     <Input placeholder="SKU (Opcional)" value={customItem.sku} onChange={e => setCustomItem({ ...customItem, sku: e.target.value })} />
 
