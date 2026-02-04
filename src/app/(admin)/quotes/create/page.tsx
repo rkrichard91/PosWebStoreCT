@@ -571,9 +571,9 @@ export default function CreateQuotePage() {
                                         <TableRow key={idx} className="group hover:bg-muted/10 transition-colors">
                                             {/* Image */}
                                             <TableCell className="py-2">
-                                                <div className="h-10 w-10 bg-muted rounded overflow-hidden border">
+                                                <div className="h-12 w-12 bg-muted rounded overflow-hidden border relative flex-shrink-0">
                                                     {item.image_url ? (
-                                                        <Image src={item.image_url} alt="" fill className="object-cover" />
+                                                        <Image src={item.image_url} alt="" fill className="object-cover" sizes="48px" />
                                                     ) : (
                                                         <div className="w-full h-full flex items-center justify-center text-muted-foreground"><ImageIcon className="h-4 w-4" /></div>
                                                     )}
