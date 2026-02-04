@@ -150,10 +150,24 @@ export default function ProductDetailPage() {
 
     // Get specs for display based on category
     const getDisplaySpecs = () => {
-        if (!product || !product.specs || typeof product.specs !== 'object') return [];
+        if (!product || !product.specs) return [];
+
+        // Handle specs as string (JSON) or object
+        let specs: Record<string, unknown> = {};
+        if (typeof product.specs === 'string' && product.specs.trim() !== '') {
+            try {
+                specs = JSON.parse(product.specs);
+            } catch (e) {
+                console.warn("Could not parse specs as JSON", e);
+                return [];
+            }
+        } else if (typeof product.specs === 'object' && product.specs !== null) {
+            specs = product.specs as Record<string, unknown>;
+        } else {
+            return [];
+        }
 
         const categorySpecs = SPEC_LABELS[product.category] || {};
-        const specs = product.specs as Record<string, unknown>;
 
         return Object.entries(categorySpecs)
             .filter(([key]) => specs[key] !== undefined && specs[key] !== null && specs[key] !== '')
