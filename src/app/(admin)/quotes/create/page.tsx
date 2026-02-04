@@ -243,11 +243,16 @@ export default function CreateQuotePage() {
             // 1. Process Custom Items
             const processedItems = await Promise.all(items.map(async (item) => {
                 if (item.is_custom) {
+                    // Generate unique SKU with timestamp + random suffix to avoid duplicates
+                    const uniqueId = `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+                    const generatedSku = item.sku && item.sku !== 'MANUAL' ? `${item.sku}-${uniqueId}` : `COT-${uniqueId}`;
+                    const generatedSlug = generatedSku.toLowerCase().replace(/\s+/g, '-');
+
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const { data: newProd, error } = await (supabase.from('products') as any).insert({
                         name: item.name,
-                        sku: item.sku || `MAN-${Date.now()}`,
-                        slug: (item.sku || `MAN-${Date.now()}`).toLowerCase().replace(/\s+/g, '-'), // Generate slug
+                        sku: generatedSku,
+                        slug: generatedSlug,
                         price_public: item.price,
                         price_cash: item.price,
                         cost_price: item.cost,
