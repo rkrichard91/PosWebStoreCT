@@ -39,6 +39,7 @@ export default function CatalogoPage() {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
+    const [selectedCategory, setSelectedCategory] = useState<string>("all");
     const addItem = useCartStore(state => state.addItem);
 
     useEffect(() => {
@@ -66,26 +67,30 @@ export default function CatalogoPage() {
         toast.success("Producto agregado al carrito");
     };
 
-    // Group products by category
-    const groupedProducts = products.reduce((acc, product) => {
-        const cat = product.category || 'other';
-        if (!acc[cat]) acc[cat] = [];
-        // Filter by search term if exists
-        if (!searchTerm ||
-            product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            product.sku.toLowerCase().includes(searchTerm.toLowerCase())) {
-            acc[cat].push(product);
+    // Filter products
+    const filteredProducts = products.filter(product => {
+        // Category filter
+        if (selectedCategory !== "all" && product.category !== selectedCategory) {
+            return false;
         }
-        return acc;
-    }, {} as Record<string, Product[]>);
+        // Search filter
+        if (searchTerm) {
+            const term = searchTerm.toLowerCase();
+            return (
+                product.name.toLowerCase().includes(term) ||
+                product.sku.toLowerCase().includes(term)
+            );
+        }
+        return true;
+    });
 
-    // Filter categories that have products
-    const activeCategories = CATEGORY_ORDER.filter(cat => groupedProducts[cat]?.length > 0);
-    // Add any categories not in the ordered list but present in data
-    Object.keys(groupedProducts).forEach(cat => {
-        if (!CATEGORY_ORDER.includes(cat) && groupedProducts[cat].length > 0) {
-            activeCategories.push(cat);
-        }
+    // Get available categories from products
+    const availableCategories = Array.from(new Set(products.map(p => p.category || 'other')));
+
+    // Sort categories based on predefined order
+    const sortedCategories = CATEGORY_ORDER.filter(c => availableCategories.includes(c as any));
+    availableCategories.forEach(c => {
+        if (!sortedCategories.includes(c)) sortedCategories.push(c);
     });
 
     if (loading) {
@@ -97,20 +102,20 @@ export default function CatalogoPage() {
     }
 
     return (
-        <div className="min-h-screen bg-background pb-20">
-            {/* Header / Hero */}
-            <section className="bg-muted/30 border-b py-12">
-                <div className="container mx-auto px-4 text-center">
-                    <h1 className="text-4xl font-extrabold tracking-tight mb-4">Catálogo de Productos</h1>
-                    <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-8">
-                        Explora nuestra selección de componentes de hardware y accesorios de alta calidad.
+        <div className="min-h-screen bg-background pb-10">
+            {/* Header */}
+            <section className="bg-muted/30 border-b py-8">
+                <div className="container mx-auto px-4">
+                    <h1 className="text-3xl font-bold tracking-tight mb-2">Catálogo</h1>
+                    <p className="text-muted-foreground max-w-2xl mb-6">
+                        Encuentra los mejores componentes para tu setup.
                     </p>
 
-                    <div className="max-w-md mx-auto relative">
-                        <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                    <div className="max-w-md relative">
+                        <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <Input
                             placeholder="Buscar producto..."
-                            className="pl-10 h-12 text-lg"
+                            className="pl-9 h-10"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -118,90 +123,103 @@ export default function CatalogoPage() {
                 </div>
             </section>
 
-            <div className="container mx-auto py-12 px-4 space-y-16">
-                {activeCategories.length === 0 ? (
-                    <div className="text-center py-20 text-muted-foreground">
-                        <PackageOpen className="h-16 w-16 mx-auto mb-4 opacity-20" />
-                        <p className="text-xl">No se encontraron productos.</p>
+            <div className="container mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8">
+                {/* Sidebar Navigation */}
+                <aside className="lg:w-64 flex-shrink-0 space-y-2">
+                    <div className="font-semibold mb-4 px-2">Categorías</div>
+                    <Button
+                        variant={selectedCategory === "all" ? "secondary" : "ghost"}
+                        className="w-full justify-start font-medium"
+                        onClick={() => setSelectedCategory("all")}
+                    >
+                        Ver Todo
+                    </Button>
+                    {sortedCategories.map(category => (
+                        <Button
+                            key={category}
+                            variant={selectedCategory === category ? "secondary" : "ghost"}
+                            className="w-full justify-start text-muted-foreground data-[active=true]:text-foreground data-[active=true]:font-medium"
+                            data-active={selectedCategory === category}
+                            onClick={() => setSelectedCategory(category)}
+                        >
+                            {CATEGORY_DISPLAY[category] || category}
+                        </Button>
+                    ))}
+                </aside>
+
+                {/* Main Content */}
+                <main className="flex-1">
+                    <div className="mb-4 flex items-center justify-between">
+                        <h2 className="text-xl font-bold">
+                            {selectedCategory === "all" ? "Todos los Productos" : (CATEGORY_DISPLAY[selectedCategory] || selectedCategory)}
+                        </h2>
+                        <span className="text-sm text-muted-foreground">
+                            {filteredProducts.length} productos
+                        </span>
                     </div>
-                ) : (
-                    activeCategories.map(category => (
-                        <section key={category} id={category} className="scroll-mt-20">
-                            <div className="flex items-center gap-4 mb-6 border-b pb-2">
-                                <h2 className="text-2xl font-bold text-primary">
-                                    {CATEGORY_DISPLAY[category] || category.charAt(0).toUpperCase() + category.slice(1)}
-                                </h2>
-                                <span className="text-xs font-medium px-2 py-1 bg-muted rounded-full text-muted-foreground">
-                                    {groupedProducts[category].length}
-                                </span>
-                            </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                                {groupedProducts[category].map(product => (
-                                    <Card key={product.id} className="flex flex-col h-full overflow-hidden hover:shadow-lg transition-shadow duration-300">
-                                        {/* Image Area */}
-                                        <div className="aspect-square bg-muted relative overflow-hidden group">
-                                            {product.image_url ? (
-                                                <Image
-                                                    src={product.image_url}
-                                                    alt={product.name}
-                                                    fill
-                                                    className="object-cover transition-transform duration-500 group-hover:scale-110"
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">
-                                                    <PackageOpen className="h-12 w-12" />
-                                                </div>
-                                            )}
-
-                                            {/* Stock Badge */}
-                                            <div className="absolute top-2 right-2">
-                                                {product.stock_physical > 0 ? (
-                                                    <Badge variant={product.stock_physical < 3 ? "destructive" : "secondary"} className="font-semibold shadow-sm">
-                                                        {product.stock_physical < 3 ? "¡Últimas unidades!" : "En Stock"}
-                                                    </Badge>
-                                                ) : (
-                                                    <Badge variant="outline" className="bg-background/80 backdrop-blur-sm text-muted-foreground border-destructive/50">
-                                                        Agotado
-                                                    </Badge>
-                                                )}
+                    {filteredProducts.length === 0 ? (
+                        <div className="py-20 text-center text-muted-foreground border-2 border-dashed rounded-xl">
+                            <PackageOpen className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                            <p>No se encontraron productos en esta categoría.</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            {filteredProducts.map(product => (
+                                <Card key={product.id} className="flex flex-col h-full overflow-hidden hover:shadow-md transition-all duration-200">
+                                    <div className="aspect-square bg-muted relative overflow-hidden group">
+                                        {product.image_url ? (
+                                            <Image
+                                                src={product.image_url}
+                                                alt={product.name}
+                                                fill
+                                                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">
+                                                <PackageOpen className="h-10 w-10" />
                                             </div>
+                                        )}
+
+                                        {product.stock_physical <= 0 && (
+                                            <div className="absolute inset-0 bg-background/60 backdrop-blur-[1px] flex items-center justify-center">
+                                                <Badge variant="outline" className="bg-background font-bold border-destructive text-destructive">
+                                                    Agotado
+                                                </Badge>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <CardContent className="flex-1 p-4 flex flex-col">
+                                        <div className="mb-2">
+                                            <p className="text-[10px] text-muted-foreground uppercase bg-muted w-fit px-1.5 py-0.5 rounded mb-2">
+                                                {product.category || 'General'}
+                                            </p>
+                                            <h3 className="font-semibold text-sm leading-tight line-clamp-2 h-10" title={product.name}>
+                                                {product.name}
+                                            </h3>
                                         </div>
 
-                                        <CardContent className="flex-1 p-5 flex flex-col">
-                                            <div className="mb-2">
-                                                <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
-                                                    {product.sku}
-                                                </p>
-                                                <h3 className="font-bold text-lg leading-tight line-clamp-2 min-h-[3rem]" title={product.name}>
-                                                    {product.name}
-                                                </h3>
-                                            </div>
-
-                                            <div className="mt-auto pt-4 flex items-center justify-between border-t border-dashed">
-                                                <div className="flex flex-col">
-                                                    <span className="text-xs text-muted-foreground">Precio</span>
-                                                    <span className="text-xl font-bold text-primary">
-                                                        {formatCurrency(product.price_public)}
-                                                    </span>
-                                                </div>
-                                                <Button
-                                                    size="sm"
-                                                    onClick={() => handleAddToCart(product)}
-                                                    disabled={product.stock_physical <= 0}
-                                                    className="rounded-full px-4 shadow-sm hover:translate-y-[-2px] transition-transform"
-                                                >
-                                                    <ShoppingCart className="h-4 w-4 mr-2" />
-                                                    Agregar
-                                                </Button>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </div>
-                        </section>
-                    ))
-                )}
+                                        <div className="mt-auto pt-3 flex items-center justify-between">
+                                            <span className="font-bold text-lg text-primary">
+                                                {formatCurrency(product.price_public)}
+                                            </span>
+                                            <Button
+                                                size="icon"
+                                                variant="secondary"
+                                                className="h-8 w-8 rounded-full"
+                                                onClick={() => handleAddToCart(product)}
+                                                disabled={product.stock_physical <= 0}
+                                            >
+                                                <ShoppingCart className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                    )}
+                </main>
             </div>
         </div>
     );
