@@ -7,11 +7,12 @@ import { Product } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingCart, Search, PackageOpen } from 'lucide-react';
+import { ShoppingCart, Search, PackageOpen, Eye } from 'lucide-react';
 import { useCartStore } from '@/store/cart-store';
 import { formatCurrency } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import { ProductDetailModal } from '@/components/shop/product-detail-modal';
 
 const CATEGORY_DISPLAY: Record<string, string> = {
     'laptop': 'Laptops & Notebooks',
@@ -40,7 +41,14 @@ export default function CatalogoPage() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedCategory, setSelectedCategory] = useState<string>("all");
+    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const addItem = useCartStore(state => state.addItem);
+
+    const openProductModal = (product: Product) => {
+        setSelectedProduct(product);
+        setIsModalOpen(true);
+    };
 
     useEffect(() => {
         async function fetchProducts() {
@@ -166,8 +174,12 @@ export default function CatalogoPage() {
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                             {filteredProducts.map(product => (
-                                <Card key={product.id} className="flex flex-col h-full overflow-hidden hover:shadow-md transition-all duration-200">
-                                    <div className="aspect-square bg-muted relative overflow-hidden group">
+                                <Card
+                                    key={product.id}
+                                    className="flex flex-col h-full overflow-hidden hover:shadow-lg transition-all duration-200 cursor-pointer group"
+                                    onClick={() => openProductModal(product)}
+                                >
+                                    <div className="aspect-square bg-muted relative overflow-hidden">
                                         {product.image_url ? (
                                             <Image
                                                 src={product.image_url}
@@ -188,6 +200,13 @@ export default function CatalogoPage() {
                                                 </Badge>
                                             </div>
                                         )}
+
+                                        {/* Hover overlay with eye icon */}
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                                            <div className="bg-white rounded-full p-3">
+                                                <Eye className="h-6 w-6 text-primary" />
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <CardContent className="flex-1 p-4 flex flex-col">
@@ -208,7 +227,10 @@ export default function CatalogoPage() {
                                                 size="icon"
                                                 variant="secondary"
                                                 className="h-8 w-8 rounded-full"
-                                                onClick={() => handleAddToCart(product)}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleAddToCart(product);
+                                                }}
                                                 disabled={product.stock_physical <= 0}
                                             >
                                                 <ShoppingCart className="h-4 w-4" />
@@ -221,6 +243,13 @@ export default function CatalogoPage() {
                     )}
                 </main>
             </div>
+
+            {/* Product Detail Modal */}
+            <ProductDetailModal
+                product={selectedProduct}
+                open={isModalOpen}
+                onOpenChange={setIsModalOpen}
+            />
         </div>
     );
 }
