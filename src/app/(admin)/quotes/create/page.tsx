@@ -124,12 +124,15 @@ export default function CreateQuotePage() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const addProductItem = (product: any) => {
         const cost = product.cost_price || 0;
-        const price = product.price_public || 0;
+        const priceWithTax = product.price_public || 0;
 
-        // Calculate simple margin: (Price - Cost) / Cost
+        // Remove IVA (15%) from public price since IVA is added at the end of the quote
+        const priceWithoutTax = priceWithTax / 1.15;
+
+        // Calculate margin based on net price: (NetPrice - Cost) / Cost
         let marginVal = 0;
         if (cost > 0) {
-            marginVal = ((price - cost) / cost) * 100;
+            marginVal = ((priceWithoutTax - cost) / cost) * 100;
         }
 
         const newItem: QuoteItem = {
@@ -137,7 +140,7 @@ export default function CreateQuotePage() {
             name: product.name,
             sku: product.sku,
             cost: cost,
-            price: price,
+            price: parseFloat(priceWithoutTax.toFixed(2)), // Price without IVA
             quantity: 1,
             image_url: product.image_url,
             margin: marginVal.toFixed(2),
@@ -145,7 +148,7 @@ export default function CreateQuotePage() {
         };
         setItems([...items, newItem]);
         setIsSearchOpen(false);
-        toast.success("Producto agregado");
+        toast.success("Producto agregado (precio sin IVA)");
     };
 
     // --- CUSTOM ITEM FUNCTIONS ---
