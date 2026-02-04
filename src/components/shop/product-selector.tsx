@@ -19,9 +19,10 @@ interface ProductSelectorProps {
     categoryLabel: string;
     onSelect: (product: Product) => void;
     currentSelection: Product | null;
+    checkCompatibility?: (product: Product) => { compatible: boolean; reason?: string };
 }
 
-export function ProductSelector({ category, categoryLabel, onSelect, currentSelection }: ProductSelectorProps) {
+export function ProductSelector({ category, categoryLabel, onSelect, currentSelection, checkCompatibility }: ProductSelectorProps) {
     const [open, setOpen] = useState(false);
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(false);
@@ -90,32 +91,63 @@ export function ProductSelector({ category, categoryLabel, onSelect, currentSele
                                         No se encontraron productos en esta categoría.
                                     </div>
                                 ) : (
-                                    products.map((product) => (
-                                        <div
-                                            key={product.id}
-                                            className="border rounded-lg p-3 flex gap-3 hover:bg-muted/50 cursor-pointer transition-colors"
-                                            onClick={() => handleSelect(product)}
-                                        >
-                                            <div className="h-20 w-20 bg-muted rounded-md flex-shrink-0 relative overflow-hidden">
-                                                {product.image_url ? (
-                                                    <Image src={product.image_url} alt={product.name} fill className="object-cover" />
-                                                ) : (
-                                                    <div className="h-full w-full flex items-center justify-center text-xs text-muted-foreground">Sin img</div>
-                                                )}
-                                            </div>
-                                            <div className="flex-1 flex flex-col justify-between">
-                                                <div>
-                                                    <h4 className="font-medium line-clamp-2 text-sm">{product.name}</h4>
-                                                    <p className="text-xs text-muted-foreground mt-1">
-                                                        SKU: {product.sku}
-                                                    </p>
+                                    products
+                                        // Sort: Compatible first, then by price
+                                        .sort((a, b) => {
+                                            if (checkCompatibility) {
+                                                const aCompat = checkCompatibility(a);
+                                                const bCompat = checkCompatibility(b);
+                                                if (aCompat.compatible && !bCompat.compatible) return -1;
+                                                if (!aCompat.compatible && bCompat.compatible) return 1;
+                                            }
+                                            return 0;
+                                        })
+                                        .map((product) => {
+                                            const validation = checkCompatibility ? checkCompatibility(product) : { compatible: true, reason: undefined };
+                                            return (
+                                                <div
+                                                    key={product.id}
+                                                    className={`
+                                                        border rounded-lg p-3 flex gap-3 transition-colors cursor-pointer
+                                                        ${validation.compatible
+                                                            ? "hover:bg-muted/50 border-border"
+                                                            : "bg-destructive/5 border-destructive/30 opacity-70 hover:opacity-100 hover:bg-destructive/10"}
+                                                    `}
+                                                    onClick={() => handleSelect(product)}
+                                                >
+                                                    <div className="h-20 w-20 bg-muted rounded-md flex-shrink-0 relative overflow-hidden">
+                                                        {product.image_url ? (
+                                                            <Image src={product.image_url} alt={product.name} fill className="object-cover" />
+                                                        ) : (
+                                                            <div className="h-full w-full flex items-center justify-center text-xs text-muted-foreground">Sin img</div>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex-1 flex flex-col justify-between">
+                                                        <div>
+                                                            <div className="flex justify-between items-start">
+                                                                <h4 className="font-medium line-clamp-2 text-sm">{product.name}</h4>
+                                                                {!validation.compatible && (
+                                                                    <span className="text-[10px] font-bold bg-destructive text-destructive-foreground px-1.5 py-0.5 rounded ml-2 whitespace-nowrap">
+                                                                        Incompatible
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <p className="text-xs text-muted-foreground mt-1">
+                                                                SKU: {product.sku}
+                                                            </p>
+                                                            {!validation.compatible && validation.reason && (
+                                                                <p className="text-xs text-destructive mt-1 font-medium">
+                                                                    {validation.reason}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                        <div className="text-right font-bold text-primary">
+                                                            {formatCurrency(product.price_public)}
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <div className="text-right font-bold text-primary">
-                                                    {formatCurrency(product.price_public)}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))
+                                            );
+                                        })
                                 )}
                             </div>
                         </ScrollArea>

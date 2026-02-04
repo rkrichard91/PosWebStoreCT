@@ -11,6 +11,9 @@ import { formatCurrency } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { ProductSelector } from "@/components/shop/product-selector";
 
+import { checkCompatibility } from "@/lib/compatibility";
+import { BuilderPerformance } from "@/components/shop/builder-performance";
+
 type Category = Database['public']['Tables']['products']['Row']['category'];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -28,6 +31,34 @@ const CATEGORIES: { id: Category; label: string; icon: any }[] = [
 
 export default function BuilderPage() {
     const { selection, removeComponent, resetBuilder } = useBuilderStore();
+
+    // Function to check a candidate product against the *current* build state
+    const checkCandidate = (category: Category, product: Database['public']['Tables']['products']['Row']) => {
+        // Create a temporary selection with the candidate
+        const tempSelection = { ...selection };
+        // We only care about core components for compatibility right now
+        // Casting is safe here because we're just creating a temp object for the check function
+        if (category in tempSelection) {
+            // @ts-ignore dynamic assignment
+            tempSelection[category as keyof typeof tempSelection] = product;
+        }
+
+        const issues = checkCompatibility(
+            tempSelection.cpu,
+            tempSelection.motherboard,
+            tempSelection.ram,
+            tempSelection.gpu,
+            tempSelection.psu
+        );
+
+        // Filter for errors that involve this specific component type
+        const blockingIssue = issues.find(i => i.type === 'error');
+
+        if (blockingIssue) {
+            return { compatible: false, reason: blockingIssue.message };
+        }
+        return { compatible: true };
+    };
 
     return (
         <div className="container mx-auto py-8">
@@ -96,6 +127,7 @@ export default function BuilderPage() {
                                                     categoryLabel={cat.label}
                                                     onSelect={(p) => useBuilderStore.getState().setComponent(cat.id, p)}
                                                     currentSelection={selectedProduct}
+                                                    checkCompatibility={(p) => checkCandidate(cat.id, p)}
                                                 />
                                                 <Button variant="ghost" size="icon" onClick={() => removeComponent(cat.id)} className="text-muted-foreground hover:text-destructive">
                                                     <X className="h-5 w-5" />
@@ -107,6 +139,7 @@ export default function BuilderPage() {
                                                 categoryLabel={cat.label}
                                                 onSelect={(p) => useBuilderStore.getState().setComponent(cat.id, p)}
                                                 currentSelection={null}
+                                                checkCompatibility={(p) => checkCandidate(cat.id, p)}
                                             />
                                         )}
                                     </div>
@@ -118,8 +151,9 @@ export default function BuilderPage() {
 
                 {/* Right Column: Summary & Status */}
                 <div className="lg:col-span-1">
-                    <div className="sticky top-24">
+                    <div className="sticky top-24 space-y-4">
                         <BuilderSummary />
+                        <BuilderPerformance />
                     </div>
                 </div>
             </div>
