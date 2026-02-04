@@ -89,18 +89,15 @@ export default function CreateQuotePage() {
         if (data) setSearchResults(data);
     };
 
-    const TAX_RATE = 0.15; // 15% IVA
-
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const addProductItem = (product: any) => {
         const cost = product.cost_price || 0;
         const price = product.price_public || 0;
 
-        // Calculate margin based on Inventory Logic: Price = Cost * (1 + Margin) * (1 + Tax)
-        // Margin = (Price / (Cost * (1 + Tax))) - 1
+        // Calculate simple margin: (Price - Cost) / Cost
         let marginVal = 0;
         if (cost > 0) {
-            marginVal = ((price / (cost * (1 + TAX_RATE))) - 1) * 100;
+            marginVal = ((price - cost) / cost) * 100;
         }
 
         const newItem: QuoteItem = {
@@ -129,10 +126,10 @@ export default function CreateQuotePage() {
         const costVal = parseFloat(customItem.cost) || 0;
         const priceVal = parseFloat(customItem.price) || 0;
 
-        // Calculate margin logic
+        // Calculate margin simple
         let marginVal = 0;
         if (costVal > 0) {
-            marginVal = ((priceVal / (costVal * (1 + TAX_RATE))) - 1) * 100;
+            marginVal = ((priceVal - costVal) / costVal) * 100;
         }
 
         const newItem: QuoteItem = {
@@ -166,26 +163,26 @@ export default function CreateQuotePage() {
         if (field === 'quantity') {
             item.quantity = Math.max(1, parseInt(value) || 1);
         } else if (field === 'price') {
-            // Recalculate Margin: M = (P / (C * 1.15)) - 1
+            // Recalculate Margin: M = (P - C) / C
             const newPrice = parseFloat(value) || 0;
             item.price = newPrice;
             if (item.cost > 0) {
-                const m = ((newPrice / (item.cost * (1 + TAX_RATE))) - 1) * 100;
+                const m = ((newPrice - item.cost) / item.cost) * 100;
                 item.margin = m.toFixed(2);
             }
         } else if (field === 'margin') {
-            // Recalculate Price: P = C * (1 + M) * 1.15
+            // Recalculate Price: P = C * (1 + M)
             const newMargin = parseFloat(value) || 0;
             item.margin = value; // Keep string input
             if (item.cost > 0) {
-                item.price = item.cost * (1 + (newMargin / 100)) * (1 + TAX_RATE);
+                item.price = item.cost * (1 + (newMargin / 100));
             }
         } else if (field === 'cost') {
-            // If cost changes, keep margin, recalc price using new cost
+            // Keep margin, update price
             const newCost = parseFloat(value) || 0;
             item.cost = newCost;
             const currentMargin = parseFloat(item.margin || "0");
-            item.price = newCost * (1 + (currentMargin / 100)) * (1 + TAX_RATE);
+            item.price = newCost * (1 + (currentMargin / 100));
         }
 
         setItems(newItems);
@@ -194,13 +191,15 @@ export default function CreateQuotePage() {
     const calculateTotals = () => {
         const subtotal = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
         const totalCost = items.reduce((acc, item) => acc + (item.cost * item.quantity), 0);
-        const profit = subtotal - totalCost;
+        const tax = subtotal * 0.15; // 15% IVA calculated at the end
+        const total = subtotal + tax;
+        const profit = subtotal - totalCost; // Net profit (Net Sale - Cost)
         const profitMargin = subtotal > 0 ? (profit / subtotal) * 100 : 0;
 
-        return { subtotal, totalCost, profit, profitMargin };
+        return { subtotal, tax, total, totalCost, profit, profitMargin };
     };
 
-    const { subtotal, totalCost, profit } = calculateTotals();
+    const { subtotal, tax, total, totalCost, profit } = calculateTotals();
 
     // --- SUBMIT ---
     const onSubmit = async (customerData: z.infer<typeof customerSchema>) => {
@@ -239,12 +238,12 @@ export default function CreateQuotePage() {
             }));
 
             // 2. Create Order (Status = 'quote')
-            const { subtotal } = calculateTotals(); // Use subtotal from calculateTotals
+            const { total, subtotal, tax } = calculateTotals(); // Use calculated totals
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const { data: order, error: orderError } = await (supabase.from('orders') as any).insert({
                 status: 'quote',
                 origin: 'web', // or 'admin' if we had it
-                total: subtotal,
+                total: total, // Total with tax
                 customer_data: customerData, // Storing full customer info in JSON column
                 // We could also link customer_id if we had a customers table, but sticking to JSON for now
             }).select().single();
@@ -597,9 +596,19 @@ export default function CreateQuotePage() {
                                             <p className="text-green-600 font-medium">Ganancia Estimada: {formatCurrency(profit)}</p>
                                         </div>
                                     )}
-                                    <div className="text-right">
-                                        <p className="text-sm text-muted-foreground uppercase tracking-wider">Total a Pagar</p>
-                                        <p className="text-4xl font-extrabold text-primary">{formatCurrency(subtotal)}</p>
+                                    <div className="text-right space-y-1">
+                                        <div className="flex justify-end gap-4 text-sm text-muted-foreground">
+                                            <span>Subtotal:</span>
+                                            <span className="font-medium">{formatCurrency(subtotal)}</span>
+                                        </div>
+                                        <div className="flex justify-end gap-4 text-sm text-muted-foreground">
+                                            <span>IVA (15%):</span>
+                                            <span className="font-medium">{formatCurrency(tax)}</span>
+                                        </div>
+                                        <div className="pt-2 border-t mt-2">
+                                            <p className="text-sm text-muted-foreground uppercase tracking-wider">Total a Pagar</p>
+                                            <p className="text-4xl font-extrabold text-primary">{formatCurrency(total)}</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
