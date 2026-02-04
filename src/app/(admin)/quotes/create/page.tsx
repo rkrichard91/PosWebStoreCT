@@ -107,6 +107,60 @@ export default function CreateQuotePage() {
         }
     }, [calcCost, taxIncluded, profitMargin]);
 
+    // --- PERSISTENCE ---
+    // Load draft on mount
+    React.useEffect(() => {
+        const savedDraft = localStorage.getItem("quote_draft");
+        if (savedDraft) {
+            try {
+                const draft = JSON.parse(savedDraft);
+                if (draft.items) setItems(draft.items);
+                if (draft.customer) form.reset(draft.customer);
+                toast.success("Borrador recuperado");
+            } catch (e) {
+                console.error("Error loading draft", e);
+            }
+        }
+    }, [form]);
+
+    // Save draft on change
+    React.useEffect(() => {
+        const subscription = form.watch((value) => {
+            const draft = {
+                items,
+                customer: value
+            };
+            localStorage.setItem("quote_draft", JSON.stringify(draft));
+        });
+
+        // Also save when items change
+        const currentForm = form.getValues();
+        if (items.length > 0 || currentForm.name) {
+            const draft = {
+                items,
+                customer: currentForm
+            };
+            localStorage.setItem("quote_draft", JSON.stringify(draft));
+        }
+
+        return () => subscription.unsubscribe();
+    }, [items, form]);
+
+    const clearDraft = () => {
+        if (confirm("¿Estás seguro de limpiar la cotización actual?")) {
+            setItems([]);
+            form.reset({
+                name: "",
+                doc_number: "",
+                phone: "",
+                email: "",
+                address: "",
+            });
+            localStorage.removeItem("quote_draft");
+            toast.success("Cotización limpiada");
+        }
+    };
+
     // --- SEARCH FUNCTIONS ---
     const handleSearch = async () => {
         if (!searchQuery) return;
@@ -302,6 +356,8 @@ export default function CreateQuotePage() {
             if (itemsError) throw itemsError;
 
             toast.success("Cotización guardada exitosamente");
+            toast.success("Cotización guardada exitosamente");
+            localStorage.removeItem("quote_draft"); // Clear draft after save
             router.push('/quotes');
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -354,6 +410,7 @@ export default function CreateQuotePage() {
                             {isInternalView ? "Vista Interna (Admin)" : "Vista Cliente"}
                         </Label>
                     </div>
+                    <Button variant="destructive" onClick={clearDraft} className="mr-2">Limpiar</Button>
                     <Button variant="outline" onClick={() => router.back()}>Cancelar</Button>
                 </div>
             </div>
