@@ -162,13 +162,13 @@
    FUTURISTIC DARK THEME UTILITIES
    ============================================ */
 
-/* Aurora/Gradient Background Effect */
+/* Aurora/Gradient Background Effect - DARK MODE ONLY */
 .aurora-bg {
   position: relative;
   overflow: hidden;
 }
 
-.aurora-bg::before {
+.dark .aurora-bg::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -194,29 +194,29 @@
   }
 }
 
-/* Gradient Text */
-.gradient-text {
+/* Gradient Text - DARK MODE ONLY */
+.dark .gradient-text {
   background: linear-gradient(135deg, var(--primary), var(--primary-coral), var(--primary-pink));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* Gradient Button */
-.btn-gradient {
+/* Gradient Button - DARK MODE ONLY */
+.dark .btn-gradient {
   background: linear-gradient(135deg, var(--primary), var(--primary-coral));
   transition: all 0.3s ease;
   box-shadow: 0 4px 20px oklch(0.68 0.20 40 / 0.3);
 }
 
-.btn-gradient:hover {
+.dark .btn-gradient:hover {
   background: linear-gradient(135deg, var(--primary-coral), var(--primary-pink));
   box-shadow: 0 6px 30px oklch(0.68 0.20 40 / 0.45);
   transform: translateY(-2px);
 }
 
-/* Glassmorphism Card */
-.glass-card {
+/* Glassmorphism Card - DARK MODE ONLY */
+.dark .glass-card {
   background: oklch(0.15 0.02 270 / 0.6);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -224,7 +224,7 @@
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.glass-card:hover {
+.dark .glass-card:hover {
   background: oklch(0.18 0.025 270 / 0.7);
   border-color: oklch(0.68 0.20 40 / 0.3);
   box-shadow: 0 8px 32px oklch(0.68 0.20 40 / 0.15),
@@ -232,7 +232,7 @@
   transform: translateY(-4px);
 }
 
-/* Gradient Border Card */
+/* Gradient Border Card - DARK MODE ONLY */
 .gradient-border {
   position: relative;
   background: var(--card);
@@ -240,7 +240,7 @@
   overflow: hidden;
 }
 
-.gradient-border::before {
+.dark .gradient-border::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -255,17 +255,17 @@
   transition: opacity 0.3s ease;
 }
 
-.gradient-border:hover::before {
+.dark .gradient-border:hover::before {
   opacity: 1;
 }
 
-/* Glow Effect */
-.glow {
+/* Glow Effect - DARK MODE ONLY */
+.dark .glow {
   box-shadow: 0 0 20px oklch(0.68 0.20 40 / 0.3),
     0 0 40px oklch(0.68 0.20 40 / 0.15);
 }
 
-.glow-text {
+.dark .glow-text {
   text-shadow: 0 0 20px oklch(0.68 0.20 40 / 0.5),
     0 0 40px oklch(0.68 0.20 40 / 0.3);
 }
