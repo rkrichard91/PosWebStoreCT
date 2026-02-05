@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/utils";
+import { QuoteActions } from "@/components/admin/quote-actions";
 
 export const metadata = {
     title: "Cotizaciones | Admin Dashboard",
@@ -100,7 +101,7 @@ export default async function QuotesPage() {
                                                 {formatCurrency(quote.total)}
                                             </TableCell>
                                             <TableCell className="text-right">
-                                                {/* Actions placeholder */}
+                                                <QuoteActions quoteId={quote.id} />
                                             </TableCell>
                                         </TableRow>
                                     )
