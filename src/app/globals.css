@@ -56,10 +56,10 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.129 0.042 264.695);
   /* Brand Orange for Center Tecno */
-  --primary: oklch(0.55 0.22 35.0);
-  /* Darker Orange for better contrast on light backgrounds */
-  --primary-coral: oklch(0.50 0.18 25);
-  --primary-pink: oklch(0.55 0.20 10);
+  --primary: oklch(0.58 0.20 40.0);
+  /* Balanced Orange - good contrast, still orange */
+  --primary-coral: oklch(0.52 0.18 30);
+  --primary-pink: oklch(0.55 0.18 20);
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.968 0.007 247.896);
   --secondary-foreground: oklch(0.205 0 0);

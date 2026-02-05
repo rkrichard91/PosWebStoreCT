@@ -5,13 +5,7 @@ import { PromoCarousel } from "@/components/shop/promo-carousel";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen flex-col aurora-bg">
-      {/* Floating Orbs Background Decoration */}
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-gradient-to-br from-primary/20 to-primary-coral/10 blur-3xl animate-float" />
-        <div className="absolute top-1/2 -left-20 h-60 w-60 rounded-full bg-gradient-to-br from-primary-coral/15 to-primary-pink/10 blur-3xl animate-float" style={{ animationDelay: '-2s' }} />
-        <div className="absolute bottom-20 right-1/4 h-40 w-40 rounded-full bg-gradient-to-br from-primary-pink/10 to-primary/5 blur-3xl animate-float" style={{ animationDelay: '-4s' }} />
-      </div>
+    <div className="flex min-h-screen flex-col bg-background">
 
       {/* Promo Carousel Section */}
       <section className="container py-8 relative z-10">
