@@ -44,7 +44,8 @@ export function QuoteActions({ quoteId }: QuoteActionsProps) {
     const handleConvertToSale = async () => {
         const { error } = await supabase
             .from("orders")
-            .update({ status: 'pending' } as any) // Move to pending (sale)
+            // @ts-expect-error - status update is valid but types are overly strict
+            .update({ status: 'pending' })
             .eq("id", quoteId);
 
         if (error) {
