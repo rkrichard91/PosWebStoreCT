@@ -55,10 +55,11 @@
   --card-foreground: oklch(0.129 0.042 264.695);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.129 0.042 264.695);
-  /* Indigo/Violeta */
   /* Brand Orange for Center Tecno */
-  --primary: oklch(0.627 0.194 45.0);
-  /* Vibrant Orange */
+  --primary: oklch(0.55 0.22 35.0);
+  /* Darker Orange for better contrast on light backgrounds */
+  --primary-coral: oklch(0.50 0.18 25);
+  --primary-pink: oklch(0.55 0.20 10);
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.968 0.007 247.896);
   --secondary-foreground: oklch(0.205 0 0);
@@ -69,8 +70,13 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.627 0.194 45.0);
+  --ring: oklch(0.55 0.22 35.0);
   /* Match Primary */
+  /* Aurora variants for light mode (subtle) */
+  --aurora-1: oklch(0.55 0.22 35.0 / 0.1);
+  --aurora-2: oklch(0.50 0.18 25 / 0.08);
+  --aurora-3: oklch(0.60 0.15 280 / 0.06);
+  --aurora-4: oklch(0.55 0.12 300 / 0.05);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -194,34 +200,49 @@
   }
 }
 
-/* Gradient Text - DARK MODE ONLY */
-.dark .gradient-text {
+/* Gradient Text - Works in both light and dark mode */
+.gradient-text {
   background: linear-gradient(135deg, var(--primary), var(--primary-coral), var(--primary-pink));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* Gradient Button - DARK MODE ONLY */
-.dark .btn-gradient {
+/* Gradient Button - Works in both light and dark mode */
+.btn-gradient {
   background: linear-gradient(135deg, var(--primary), var(--primary-coral));
+  color: var(--primary-foreground);
   transition: all 0.3s ease;
-  box-shadow: 0 4px 20px oklch(0.68 0.20 40 / 0.3);
+  box-shadow: 0 4px 20px oklch(0.55 0.22 35 / 0.3);
 }
 
-.dark .btn-gradient:hover {
+.btn-gradient:hover {
   background: linear-gradient(135deg, var(--primary-coral), var(--primary-pink));
-  box-shadow: 0 6px 30px oklch(0.68 0.20 40 / 0.45);
+  box-shadow: 0 6px 30px oklch(0.55 0.22 35 / 0.45);
   transform: translateY(-2px);
 }
 
-/* Glassmorphism Card - DARK MODE ONLY */
-.dark .glass-card {
-  background: oklch(0.15 0.02 270 / 0.6);
+/* Glassmorphism Card - Light Mode */
+.glass-card {
+  background: oklch(1 0 0 / 0.8);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid oklch(1 0 0 / 0.08);
+  border: 1px solid oklch(0 0 0 / 0.08);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+  background: oklch(1 0 0 / 0.95);
+  border-color: var(--primary);
+  box-shadow: 0 8px 32px oklch(0.55 0.22 35 / 0.15),
+    inset 0 1px 0 oklch(1 0 0 / 0.5);
+  transform: translateY(-4px);
+}
+
+/* Glassmorphism Card - Dark Mode Override */
+.dark .glass-card {
+  background: oklch(0.15 0.02 270 / 0.6);
+  border: 1px solid oklch(1 0 0 / 0.08);
 }
 
 .dark .glass-card:hover {
@@ -229,10 +250,9 @@
   border-color: oklch(0.68 0.20 40 / 0.3);
   box-shadow: 0 8px 32px oklch(0.68 0.20 40 / 0.15),
     inset 0 1px 0 oklch(1 0 0 / 0.05);
-  transform: translateY(-4px);
 }
 
-/* Gradient Border Card - DARK MODE ONLY */
+/* Gradient Border Card */
 .gradient-border {
   position: relative;
   background: var(--card);
@@ -240,7 +260,7 @@
   overflow: hidden;
 }
 
-.dark .gradient-border::before {
+.gradient-border::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -255,11 +275,11 @@
   transition: opacity 0.3s ease;
 }
 
-.dark .gradient-border:hover::before {
+.gradient-border:hover::before {
   opacity: 1;
 }
 
-/* Glow Effect - DARK MODE ONLY */
+/* Glow Effect - Only in dark mode */
 .dark .glow {
   box-shadow: 0 0 20px oklch(0.68 0.20 40 / 0.3),
     0 0 40px oklch(0.68 0.20 40 / 0.15);
