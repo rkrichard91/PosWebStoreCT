@@ -40,20 +40,47 @@ export function QuoteActions({ quoteId }: QuoteActionsProps) {
         }
     };
 
-    // TODO: Implement "Convert to Sale" server action or logic
+    // Convert to Sale: Load items into POS cart
     const handleConvertToSale = async () => {
-        const { error } = await supabase
-            .from("orders")
-            // @ts-expect-error - status update is valid but types are overly strict
-            .update({ status: 'pending' })
-            .eq("id", quoteId);
+        toast.loading("Cargando productos...");
 
-        if (error) {
-            toast.error("Error al convertir a venta");
-        } else {
-            toast.success("Cotización convertida a venta");
-            router.refresh();
+        // 1. Fetch order items with product details
+        const { data: items, error } = await supabase
+            .from("order_items")
+            .select(`
+                *,
+                products (*)
+            `)
+            .eq("order_id", quoteId);
+
+        if (error || !items || items.length === 0) {
+            toast.dismiss();
+            toast.error("No se pudieron cargar los productos de la cotización");
+            console.error(error);
+            return;
         }
+
+        // 2. Format items for POS cart (matching CartItem structure)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const cartItems = (items as any[]).map((item) => {
+            const product = item.products as Record<string, unknown>;
+            return {
+                ...product,
+                quantity: item.quantity,
+            };
+        });
+
+        // 3. Store in localStorage for POS to pick up
+        localStorage.setItem("pos_pending_quote", JSON.stringify({
+            quoteId,
+            items: cartItems
+        }));
+
+        toast.dismiss();
+        toast.success("Redirigiendo al POS...");
+
+        // 4. Navigate to POS
+        router.push("/pos");
     }
 
     return (

@@ -63,6 +63,38 @@ export default function PosPage() {
         searchProducts("");
     }, [searchProducts]);
 
+    // Check for pending quote to load into cart
+    useEffect(() => {
+        const pendingQuote = localStorage.getItem("pos_pending_quote");
+        if (pendingQuote) {
+            try {
+                const { quoteId, items: quoteItems } = JSON.parse(pendingQuote);
+
+                // Clear current cart first
+                clearCart();
+
+                // Add each item from the quote
+                quoteItems.forEach((item: Product & { quantity: number }) => {
+                    // Add item with its quantity
+                    for (let i = 0; i < item.quantity; i++) {
+                        addItem(item);
+                    }
+                });
+
+                toast.success(`Cotización cargada (${quoteItems.length} productos)`);
+
+                // Store quote ID for later reference (to mark as completed after sale)
+                localStorage.setItem("pos_active_quote_id", quoteId);
+
+                // Clear the pending quote
+                localStorage.removeItem("pos_pending_quote");
+            } catch (e) {
+                console.error("Error loading pending quote:", e);
+                localStorage.removeItem("pos_pending_quote");
+            }
+        }
+    }, [addItem, clearCart]);
+
     // Debounce search
     useEffect(() => {
         const timeout = setTimeout(() => {
@@ -134,7 +166,31 @@ export default function PosPage() {
             return;
         }
 
-        // 3. Success & Prepare Print
+        // 3. Reduce stock for each product sold
+        for (const item of items) {
+            await supabase.rpc('decrement_stock', {
+                product_id: item.id,
+                amount: item.quantity
+            }).catch(() => {
+                // Fallback: manual update if RPC doesn't exist
+                supabase
+                    .from('products')
+                    .update({ stock_physical: item.stock_physical - item.quantity })
+                    .eq('id', item.id);
+            });
+        }
+
+        // 4. If this was from a quote, mark the quote as completed
+        const activeQuoteId = localStorage.getItem("pos_active_quote_id");
+        if (activeQuoteId) {
+            await supabase
+                .from('orders')
+                .update({ status: 'completed' })
+                .eq('id', activeQuoteId);
+            localStorage.removeItem("pos_active_quote_id");
+        }
+
+        // 5. Success & Prepare Print
         toast.success(`Venta #${order.ticket_number} realizada`);
 
         // Construct full order object for receipt
