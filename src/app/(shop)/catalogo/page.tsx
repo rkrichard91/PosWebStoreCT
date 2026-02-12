@@ -96,7 +96,7 @@ export default function CatalogoPage() {
     const availableCategories = Array.from(new Set(products.map(p => p.category || 'other')));
 
     // Sort categories based on predefined order
-    const sortedCategories = CATEGORY_ORDER.filter(c => availableCategories.includes(c as any));
+    const sortedCategories = CATEGORY_ORDER.filter(c => availableCategories.includes(c));
     availableCategories.forEach(c => {
         if (!sortedCategories.includes(c)) sortedCategories.push(c);
     });

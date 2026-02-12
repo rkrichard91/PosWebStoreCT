@@ -26,6 +26,7 @@ import { Switch } from "@/components/ui/switch"
 import { ImageUpload } from "@/components/admin/image-upload"
 import { Calculator } from "lucide-react"
 import { useEffect, useState } from "react"
+import { calcularPrecioVenta } from "@/utils/pricing"
 
 const productSchema = z.object({
     sku: z.string().min(1, "SKU requerido"),
@@ -110,6 +111,7 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
             let netCost = inputCost
             let ivaProveedor = 0
             let totalPagado = inputCost
+
             if (taxIncluded) {
                 // IVA included in the input: extract net cost
                 netCost = inputCost / (1 + (tax / 100))
@@ -122,34 +124,25 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                 totalPagado = inputCost + ivaProveedor
             }
 
-            // 2. Calculate Gain (on net cost)
-            const gain = netCost * (margin / 100)
-
-            // 3. Base Price = NetCost + Gain (subtotal before client IVA)
-            const basePrice = netCost + gain
-
-            // 4. Client IVA
-            const ivaCliente = basePrice * (tax / 100)
-
-            // 5. Final Price (PVP) = Base + Client IVA
-            const finalPrice = basePrice + ivaCliente
+            // 2. Use the Pricing Utility for Gross Up Logic
+            const pricingResult = calcularPrecioVenta(netCost, margin, tax);
 
             // Update Form Fields
-            form.setValue("cost_price", parseFloat(netCost.toFixed(2)))
-            form.setValue("price_public", parseFloat(finalPrice.toFixed(2)))
-            form.setValue("price_cash", parseFloat(finalPrice.toFixed(2)))
+            form.setValue("cost_price", pricingResult.costo)
+            form.setValue("price_public", pricingResult.pvp)
+            form.setValue("price_cash", pricingResult.pvp) // Assuming cash price same as pvp for now
             form.setValue("invoice_cost", parseFloat(inputCost.toFixed(2)))
             form.setValue("iva_on_purchase", taxIncluded)
 
             // Update breakdown for display
             setBreakdown({
-                netCost: parseFloat(netCost.toFixed(2)),
+                netCost: pricingResult.costo,
                 ivaProveedor: parseFloat(ivaProveedor.toFixed(2)),
                 totalPagado: parseFloat(totalPagado.toFixed(2)),
-                gain: parseFloat(gain.toFixed(2)),
-                basePrice: parseFloat(basePrice.toFixed(2)),
-                ivaCliente: parseFloat(ivaCliente.toFixed(2)),
-                finalPrice: parseFloat(finalPrice.toFixed(2)),
+                gain: pricingResult.gananciaNeta,
+                basePrice: pricingResult.subtotal,
+                ivaCliente: pricingResult.montoIva,
+                finalPrice: pricingResult.pvp,
             })
         } else {
             setBreakdown(null)

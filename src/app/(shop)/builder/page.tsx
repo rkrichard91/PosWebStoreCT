@@ -39,7 +39,7 @@ export default function BuilderPage() {
         // We only care about core components for compatibility right now
         // Casting is safe here because we're just creating a temp object for the check function
         if (category in tempSelection) {
-            // @ts-ignore dynamic assignment
+            // @ts-expect-error dynamic assignment
             tempSelection[category as keyof typeof tempSelection] = product;
         }
 

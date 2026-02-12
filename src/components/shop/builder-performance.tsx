@@ -102,7 +102,7 @@ export function BuilderPerformance() {
 
     const { gaming, work } = getEstimations(score);
 
-    if (!gaming && !work) return null;
+    if (!gaming || !work) return null;
 
     return (
         <Card className="mt-6 border-primary/20 bg-card/50">
@@ -138,20 +138,20 @@ export function BuilderPerformance() {
                         <div className="grid grid-cols-1 gap-2 text-sm">
                             <div className="flex justify-between items-center group relative cursor-help">
                                 <span>Competitivo (Valorant/CS2)</span>
-                                <span className={gaming?.competitive! > 144 ? "text-green-500 font-bold" : "text-foreground"}>
-                                    {gaming?.competitive}+ FPS
+                                <span className={gaming.competitive > 144 ? "text-green-500 font-bold" : "text-foreground"}>
+                                    {gaming.competitive}+ FPS
                                 </span>
                             </div>
                             <div className="flex justify-between items-center">
                                 <span>Battle Royale (Warzone)</span>
-                                <span className={gaming?.battleRoyale! > 60 ? "text-primary font-bold" : ""}>
-                                    {gaming?.battleRoyale}+ FPS
+                                <span className={gaming.battleRoyale > 60 ? "text-primary font-bold" : ""}>
+                                    {gaming.battleRoyale}+ FPS
                                 </span>
                             </div>
                             <div className="flex justify-between items-center">
                                 <span>AAA (Cyberpunk 2077)</span>
-                                <span className={gaming?.aaa! > 60 ? "text-primary" : "text-muted-foreground"}>
-                                    {gaming?.aaa}+ FPS
+                                <span className={gaming.aaa > 60 ? "text-primary" : "text-muted-foreground"}>
+                                    {gaming.aaa}+ FPS
                                 </span>
                             </div>
                         </div>
@@ -165,10 +165,10 @@ export function BuilderPerformance() {
                         Productividad
                     </div>
                     <div className="space-y-2 text-sm">
-                        <WorkRow label="Oficina / Estudiante" score={work!.office} />
-                        <WorkRow label="Programación" score={work!.coding} />
-                        <WorkRow label="Edición de Video" score={work!.editing} />
-                        <WorkRow label="Renderizado 3D" score={work!.rendering} />
+                        <WorkRow label="Oficina / Estudiante" score={work.office} />
+                        <WorkRow label="Programación" score={work.coding} />
+                        <WorkRow label="Edición de Video" score={work.editing} />
+                        <WorkRow label="Renderizado 3D" score={work.rendering} />
                     </div>
                 </div>
 

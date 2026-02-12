@@ -265,7 +265,7 @@ function StatusBadge({ status, type }: { status: string, type: 'order' | 'repair
     }
 
     // Repair Status Mapping
-    const statusConfig: Record<string, { label: string, color: string, icon: any }> = {
+    const statusConfig: Record<string, { label: string, color: string, icon: React.ElementType }> = {
         'received': { label: 'Recibido', color: 'bg-blue-500', icon: Clock },
         'diagnosing': { label: 'Diagnosticando', color: 'bg-yellow-500', icon: Wrench },
         'waiting_parts': { label: 'Esperando Repuestos', color: 'bg-orange-500', icon: Package },
