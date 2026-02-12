@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ActionCell } from "./actions"
 import { Checkbox } from "@/components/ui/checkbox"
+import { formatCurrency } from "@/lib/utils"
 
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
@@ -18,6 +19,8 @@ export type Product = {
     price_public: number
     price_cash: number
     cost_price: number | null
+    invoice_cost: number | null
+    iva_on_purchase: boolean
     stock_physical: number
     min_stock_alert: number
     is_active: boolean
@@ -78,12 +81,7 @@ export const columns: ColumnDef<Product>[] = [
         header: "Precio",
         cell: ({ row }: { row: any }) => {
             const amount = parseFloat(row.getValue("price_public"))
-            const formatted = new Intl.NumberFormat("es-CL", {
-                style: "currency",
-                currency: "CLP",
-            }).format(amount)
-
-            return <div className="font-medium">{formatted}</div>
+            return <div className="font-medium">{formatCurrency(amount)}</div>
         },
     },
     {

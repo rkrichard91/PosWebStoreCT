@@ -38,6 +38,8 @@ const productSchema = z.object({
     price_public: z.coerce.number().min(0),
     price_cash: z.coerce.number().min(0),
     cost_price: z.coerce.number().nullable().optional(),
+    invoice_cost: z.coerce.number().nullable().optional(),
+    iva_on_purchase: z.boolean().default(true),
     stock_physical: z.coerce.number().int().min(0),
     min_stock_alert: z.coerce.number().int().min(0),
     is_active: z.boolean().default(true),
@@ -65,6 +67,8 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
             price_public: initialData?.price_public || 0,
             price_cash: initialData?.price_cash || 0,
             cost_price: initialData?.cost_price || 0,
+            invoice_cost: initialData?.invoice_cost || null,
+            iva_on_purchase: initialData?.iva_on_purchase ?? true,
             stock_physical: initialData?.stock_physical || 0,
             min_stock_alert: initialData?.min_stock_alert || 0,
             is_active: initialData?.is_active ?? true,
@@ -77,11 +81,20 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
 
 
 
-    // Calculator States
-    const [calcCost, setCalcCost] = useState<string>("")
-    const [taxIncluded, setTaxIncluded] = useState<boolean>(true)
+    // Calculator States — initialize from saved product data when editing
+    const [calcCost, setCalcCost] = useState<string>(
+        initialData?.invoice_cost ? initialData.invoice_cost.toString() : ""
+    )
+    const [taxIncluded, setTaxIncluded] = useState<boolean>(
+        initialData?.iva_on_purchase ?? true
+    )
     const [profitMargin, setProfitMargin] = useState<string>("30")
     const [taxRate, setTaxRate] = useState<string>("15")
+
+    // Calculated breakdown values for display
+    const [breakdown, setBreakdown] = useState<{
+        netCost: number; ivaProveedor: number; totalPagado: number; gain: number; basePrice: number; ivaCliente: number; finalPrice: number
+    } | null>(null)
 
     // eslint-disable-next-line react-hooks/incompatible-library
     const category = form.watch("category");
@@ -92,32 +105,54 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
         const margin = parseFloat(profitMargin)
         const tax = parseFloat(taxRate)
 
-        if (!isNaN(inputCost) && !isNaN(margin) && !isNaN(tax)) {
+        if (!isNaN(inputCost) && !isNaN(margin) && !isNaN(tax) && inputCost > 0) {
             // 1. Normalize Cost (Net Cost)
-            // If tax included: Net = Input / (1 + TaxRate)
-            // If tax not included: Net = Input
             let netCost = inputCost
+            let ivaProveedor = 0
+            let totalPagado = inputCost
             if (taxIncluded) {
+                // IVA included in the input: extract net cost
                 netCost = inputCost / (1 + (tax / 100))
+                ivaProveedor = inputCost - netCost
+                totalPagado = inputCost
+            } else {
+                // Input is net cost, IVA is added on top
+                netCost = inputCost
+                ivaProveedor = inputCost * (tax / 100)
+                totalPagado = inputCost + ivaProveedor
             }
 
-            // 2. Calculate Gain
-            // Gain = NetCost * (Margin / 100)
+            // 2. Calculate Gain (on net cost)
             const gain = netCost * (margin / 100)
 
-            // 3. Base Price
-            // Base = NetCost + Gain
+            // 3. Base Price = NetCost + Gain (subtotal before client IVA)
             const basePrice = netCost + gain
 
-            // 4. Final Price (PVP)
-            // Final = Base * (1 + TaxRate)
-            const finalPrice = basePrice * (1 + (tax / 100))
+            // 4. Client IVA
+            const ivaCliente = basePrice * (tax / 100)
+
+            // 5. Final Price (PVP) = Base + Client IVA
+            const finalPrice = basePrice + ivaCliente
 
             // Update Form Fields
-            // Rounding to 2 decimal places for storage, though UI might format differently
             form.setValue("cost_price", parseFloat(netCost.toFixed(2)))
             form.setValue("price_public", parseFloat(finalPrice.toFixed(2)))
-            form.setValue("price_cash", parseFloat(finalPrice.toFixed(2))) // Assign same initially
+            form.setValue("price_cash", parseFloat(finalPrice.toFixed(2)))
+            form.setValue("invoice_cost", parseFloat(inputCost.toFixed(2)))
+            form.setValue("iva_on_purchase", taxIncluded)
+
+            // Update breakdown for display
+            setBreakdown({
+                netCost: parseFloat(netCost.toFixed(2)),
+                ivaProveedor: parseFloat(ivaProveedor.toFixed(2)),
+                totalPagado: parseFloat(totalPagado.toFixed(2)),
+                gain: parseFloat(gain.toFixed(2)),
+                basePrice: parseFloat(basePrice.toFixed(2)),
+                ivaCliente: parseFloat(ivaCliente.toFixed(2)),
+                finalPrice: parseFloat(finalPrice.toFixed(2)),
+            })
+        } else {
+            setBreakdown(null)
         }
     }, [calcCost, taxIncluded, profitMargin, taxRate, form])
 
@@ -453,7 +488,7 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                                 id="tax-included"
                             />
                             <FormLabel htmlFor="tax-included" className="cursor-pointer text-xs">
-                                ¿Impuesto Incluido?
+                                ¿IVA incluido en factura?
                             </FormLabel>
                         </div>
 
@@ -482,6 +517,47 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                     <div className="text-xs text-muted-foreground mt-2">
                         ℹ️ Esto calculará automáticamente el <strong>Costo Neto</strong> y el <strong>Precio Público</strong> abajo.
                     </div>
+
+                    {/* Cost Breakdown */}
+                    {breakdown && (
+                        <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-800 space-y-1.5 text-sm">
+                            {/* Row 1: Net Cost (what was entered or extracted) */}
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Costo Neto (sin IVA):</span>
+                                <span className="font-bold">${breakdown.netCost.toFixed(2)}</span>
+                            </div>
+                            {/* Row 2: Supplier IVA */}
+                            <div className="flex justify-between text-orange-600 dark:text-orange-400">
+                                <span>+ Mi IVA ({taxRate}%):</span>
+                                <span>+${breakdown.ivaProveedor.toFixed(2)}</span>
+                            </div>
+                            {/* Row 3: Total paid to supplier */}
+                            <div className="flex justify-between pt-1 border-t border-blue-100 dark:border-blue-900">
+                                <span className="text-muted-foreground font-medium">= Total que pago al proveedor:</span>
+                                <span className="font-bold">${breakdown.totalPagado.toFixed(2)}</span>
+                            </div>
+                            {/* Row 4: Profit */}
+                            <div className="flex justify-between text-blue-600 dark:text-blue-400 pt-1">
+                                <span>+ Ganancia ({profitMargin}%):</span>
+                                <span>+${breakdown.gain.toFixed(2)}</span>
+                            </div>
+                            {/* Row 5: Subtotal */}
+                            <div className="flex justify-between pt-1 border-t border-blue-100 dark:border-blue-900">
+                                <span className="text-muted-foreground font-medium">Subtotal (sin IVA):</span>
+                                <span className="font-bold">${breakdown.basePrice.toFixed(2)}</span>
+                            </div>
+                            {/* Row 6: Client IVA */}
+                            <div className="flex justify-between text-purple-600 dark:text-purple-400">
+                                <span>+ IVA Cliente ({taxRate}%):</span>
+                                <span>+${breakdown.ivaCliente.toFixed(2)}</span>
+                            </div>
+                            {/* Row 7: PVP Total */}
+                            <div className="flex justify-between pt-1.5 border-t-2 border-green-300 dark:border-green-700">
+                                <span className="font-bold text-green-700 dark:text-green-400">PVP Total:</span>
+                                <span className="font-bold text-lg text-green-700 dark:text-green-400">${breakdown.finalPrice.toFixed(2)}</span>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

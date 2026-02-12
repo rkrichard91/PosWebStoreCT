@@ -68,6 +68,10 @@ export default function CreateQuotePage() {
     const [profitMargin, setProfitMargin] = useState<string>("30");
     const [calculatedNetCost, setCalculatedNetCost] = useState<number>(0);
     const [calculatedPrice, setCalculatedPrice] = useState<number>(0);
+    const [calculatedBasePrice, setCalculatedBasePrice] = useState<number>(0);
+    const [calculatedIvaCliente, setCalculatedIvaCliente] = useState<number>(0);
+    const [calculatedIvaProveedor, setCalculatedIvaProveedor] = useState<number>(0);
+    const [calculatedTotalPagado, setCalculatedTotalPagado] = useState<number>(0);
 
     const form = useForm<z.infer<typeof customerSchema>>({
         resolver: zodResolver(customerSchema),
@@ -88,22 +92,41 @@ export default function CreateQuotePage() {
 
         if (!isNaN(inputCost) && !isNaN(margin) && inputCost > 0) {
             // 1. Normalize Cost (Net Cost)
-            // If tax included: Net = Input / (1 + TaxRate)
-            // If tax not included: Net = Input
             let netCost = inputCost;
+            let ivaProveedor = 0;
+            let totalPagado = inputCost;
             if (taxIncluded) {
+                // IVA included in the input: extract net cost
                 netCost = inputCost / (1 + tax);
+                ivaProveedor = inputCost - netCost;
+                totalPagado = inputCost;
+            } else {
+                // Input is net cost, IVA is added on top
+                netCost = inputCost;
+                ivaProveedor = inputCost * tax;
+                totalPagado = inputCost + ivaProveedor;
             }
 
-            // 2. Calculate Sale Price (Net)
-            // Price = NetCost * (1 + Margin/100)
-            const salePrice = netCost * (1 + (margin / 100));
+            // 2. Base Price = NetCost + Gain
+            const basePrice = netCost * (1 + (margin / 100));
+            // 3. Client IVA
+            const ivaCliente = basePrice * tax;
+            // 4. PVP = Base + Client IVA
+            const pvp = basePrice + ivaCliente;
 
             setCalculatedNetCost(parseFloat(netCost.toFixed(2)));
-            setCalculatedPrice(parseFloat(salePrice.toFixed(2)));
+            setCalculatedPrice(parseFloat(pvp.toFixed(2)));
+            setCalculatedBasePrice(parseFloat(basePrice.toFixed(2)));
+            setCalculatedIvaCliente(parseFloat(ivaCliente.toFixed(2)));
+            setCalculatedIvaProveedor(parseFloat(ivaProveedor.toFixed(2)));
+            setCalculatedTotalPagado(parseFloat(totalPagado.toFixed(2)));
         } else {
             setCalculatedNetCost(0);
             setCalculatedPrice(0);
+            setCalculatedBasePrice(0);
+            setCalculatedIvaCliente(0);
+            setCalculatedIvaProveedor(0);
+            setCalculatedTotalPagado(0);
         }
     }, [calcCost, taxIncluded, profitMargin]);
 
@@ -542,14 +565,41 @@ export default function CreateQuotePage() {
                                         </div>
 
                                         {calculatedPrice > 0 && (
-                                            <div className="pt-2 border-t border-blue-200 dark:border-blue-900 space-y-1 text-sm">
+                                            <div className="pt-2 border-t border-blue-200 dark:border-blue-900 space-y-1.5 text-sm">
+                                                {/* Row 1: Net Cost */}
                                                 <div className="flex justify-between">
-                                                    <span className="text-muted-foreground">Costo Neto:</span>
-                                                    <span className="font-medium">{formatCurrency(calculatedNetCost)}</span>
+                                                    <span className="text-muted-foreground">Costo Neto (sin IVA):</span>
+                                                    <span className="font-bold">{formatCurrency(calculatedNetCost)}</span>
                                                 </div>
-                                                <div className="flex justify-between text-green-600 font-bold">
-                                                    <span>Precio Venta:</span>
-                                                    <span>{formatCurrency(calculatedPrice)}</span>
+                                                {/* Row 2: My IVA */}
+                                                <div className="flex justify-between text-orange-600 dark:text-orange-400">
+                                                    <span>+ Mi IVA (15%):</span>
+                                                    <span>+${calculatedIvaProveedor.toFixed(2)}</span>
+                                                </div>
+                                                {/* Row 3: Total paid to supplier */}
+                                                <div className="flex justify-between pt-1 border-t border-blue-100 dark:border-blue-900">
+                                                    <span className="text-muted-foreground font-medium">= Total que pago al proveedor:</span>
+                                                    <span className="font-bold">${calculatedTotalPagado.toFixed(2)}</span>
+                                                </div>
+                                                {/* Row 4: Profit */}
+                                                <div className="flex justify-between text-blue-600 dark:text-blue-400 pt-1">
+                                                    <span>+ Ganancia ({profitMargin}%):</span>
+                                                    <span>+${(calculatedBasePrice - calculatedNetCost).toFixed(2)}</span>
+                                                </div>
+                                                {/* Row 5: Subtotal */}
+                                                <div className="flex justify-between pt-1 border-t border-blue-100 dark:border-blue-900">
+                                                    <span className="text-muted-foreground font-medium">Subtotal (sin IVA):</span>
+                                                    <span className="font-bold">{formatCurrency(calculatedBasePrice)}</span>
+                                                </div>
+                                                {/* Row 6: Client IVA */}
+                                                <div className="flex justify-between text-purple-600 dark:text-purple-400">
+                                                    <span>+ IVA Cliente (15%):</span>
+                                                    <span>+${calculatedIvaCliente.toFixed(2)}</span>
+                                                </div>
+                                                {/* Row 7: PVP Total */}
+                                                <div className="flex justify-between pt-1.5 border-t-2 border-green-300 dark:border-green-700">
+                                                    <span className="font-bold text-green-700 dark:text-green-400">PVP Total:</span>
+                                                    <span className="font-bold text-lg text-green-700 dark:text-green-400">{formatCurrency(calculatedPrice)}</span>
                                                 </div>
                                             </div>
                                         )}

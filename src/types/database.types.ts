@@ -20,6 +20,8 @@ export interface Database {
                     price_public: number
                     price_cash: number
                     cost_price: number
+                    invoice_cost: number | null
+                    iva_on_purchase: boolean
                     stock_physical: number
                     min_stock_alert: number
                     image_url: string | null
