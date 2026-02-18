@@ -75,7 +75,8 @@ export default function WorkshopKanban() {
         setRepairs(updatedRepairs);
 
         // Persist
-        await supabase.from('repairs').update({ status: newStatus }).eq('id', draggableId);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await supabase.from('repairs').update({ status: newStatus } as any).eq('id', draggableId);
     };
 
     return (
