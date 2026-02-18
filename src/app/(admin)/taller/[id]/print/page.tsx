@@ -124,7 +124,7 @@ export default function RepairPrintPage() {
                 </div>
 
                 <div className="mt-12 text-center text-xs">
-                    <p>Revise el estado de su ticket en: <strong>center-tecno.com/estado</strong></p>
+                    <p>Revise el estado de su ticket en: <strong>center-tecno.com/check-repair</strong></p>
                 </div>
             </div>
         </div>
