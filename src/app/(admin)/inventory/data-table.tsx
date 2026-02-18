@@ -75,6 +75,7 @@ export function DataTable<TData, TValue>({
             columnFilters,
             rowSelection,
         },
+        autoResetPageIndex: false, // Prevent reset on data update
     })
 
     // Bulk Actions Logic

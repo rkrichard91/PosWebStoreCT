@@ -94,6 +94,7 @@ export function ProductSheet({ open, onOpenChange, product }: ProductSheetProps)
                 </SheetHeader>
                 <div className="py-4">
                     <ProductForm
+                        key={product.id}
                         initialData={initialData}
                         onSubmit={onSubmit}
                         isLoading={loading}

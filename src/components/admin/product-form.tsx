@@ -76,7 +76,7 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
             image_url: initialData?.image_url || "",
             description: initialData?.description || "",
             slug: initialData?.slug || "", // Added slug to default values
-            specs: initialData?.specs || {},
+            specs: (typeof initialData?.specs === 'object' && initialData.specs !== null) ? initialData.specs : {},
         },
     })
 
@@ -151,7 +151,7 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
 
     function handleSubmit(values: ProductFormValues) {
         // Ensure specs is an object
-        if (!values.specs) values.specs = {};
+        if (!values.specs || typeof values.specs !== 'object') values.specs = {};
         onSubmit(values)
     }
 
