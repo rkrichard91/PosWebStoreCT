@@ -93,7 +93,7 @@ export default function CatalogoPage() {
     });
 
     // Get available categories from products
-    const availableCategories = Array.from(new Set(products.map(p => p.category || 'other')));
+    const availableCategories = Array.from(new Set(products.map(p => p.category || 'other'))) as string[];
 
     // Sort categories based on predefined order
     const sortedCategories = CATEGORY_ORDER.filter(c => availableCategories.includes(c));
