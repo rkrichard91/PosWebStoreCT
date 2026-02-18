@@ -10,8 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { Repair } from "@/types";
+import { Repair } from "@/types"; // Ensure Repair is imported from here
 import Link from "next/link";
+import { Database } from "@/types/database.types"; // Import Database type
 
 const COLUMNS = [
     { id: 'received', title: 'Recibido', color: 'bg-gray-100 dark:bg-gray-800' },
@@ -20,7 +21,9 @@ const COLUMNS = [
     { id: 'approved', title: 'Aprobado', color: 'bg-purple-100 dark:bg-purple-900/20' },
     { id: 'repaired', title: 'Reparado', color: 'bg-green-100 dark:bg-green-900/20' },
     { id: 'delivered', title: 'Entregado', color: 'bg-slate-200 dark:bg-slate-800' },
-];
+] as const;
+
+type RepairStatus = Database['public']['Tables']['repairs']['Row']['status'];
 
 export default function WorkshopKanban() {
     const [repairs, setRepairs] = useState<Repair[]>([]);
@@ -37,8 +40,17 @@ export default function WorkshopKanban() {
         // Realtime subscription
         const channel = supabase
             .channel('repairs_changes')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'repairs' }, () => {
-                fetchRepairs();
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'repairs' }, (payload) => {
+                // Handle different event types for better UX if needed
+                if (payload.eventType === 'INSERT') {
+                    setRepairs(prev => [payload.new as Repair, ...prev]);
+                } else if (payload.eventType === 'UPDATE') {
+                    setRepairs(prev => prev.map(r => r.id === payload.new.id ? payload.new as Repair : r));
+                } else if (payload.eventType === 'DELETE') {
+                    setRepairs(prev => prev.filter(r => r.id !== payload.old.id));
+                } else {
+                    fetchRepairs();
+                }
             })
             .subscribe();
 
@@ -54,17 +66,16 @@ export default function WorkshopKanban() {
         if (!destination) return;
         if (destination.droppableId === source.droppableId && destination.index === source.index) return;
 
-        const newStatus = destination.droppableId;
+        const newStatus = destination.droppableId as RepairStatus;
 
         // Optimistic update
         const updatedRepairs = repairs.map(r =>
-            r.id === draggableId ? { ...r, status: newStatus as Repair['status'] } : r
+            r.id === draggableId ? { ...r, status: newStatus } : r
         );
         setRepairs(updatedRepairs);
 
         // Persist
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await (supabase.from('repairs') as any).update({ status: newStatus }).eq('id', draggableId);
+        await supabase.from('repairs').update({ status: newStatus }).eq('id', draggableId);
     };
 
     return (
