@@ -9,7 +9,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, FileEdit, Trash, Printer, ShoppingCart } from "lucide-react";
+import { MoreHorizontal, FileEdit, Trash, Printer, ShoppingCart, Eye } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
@@ -95,8 +95,14 @@ export function QuoteActions({ quoteId }: QuoteActionsProps) {
                 <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                 <DropdownMenuItem asChild>
                     <Link href={`/quotes/${quoteId}`}>
+                        <Eye className="mr-2 h-4 w-4" />
+                        Ver Detalles
+                    </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                    <Link href={`/quotes/${quoteId}/edit`}>
                         <FileEdit className="mr-2 h-4 w-4" />
-                        Ver / Editar
+                        Editar Cotización
                     </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>

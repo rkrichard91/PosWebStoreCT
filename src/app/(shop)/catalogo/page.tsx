@@ -96,7 +96,7 @@ export default function CatalogoPage() {
     const availableCategories = Array.from(new Set(products.map(p => p.category || 'other'))) as string[];
 
     // Sort categories based on predefined order
-    const sortedCategories = CATEGORY_ORDER.filter(c => availableCategories.includes(c));
+    const sortedCategories = CATEGORY_ORDER.filter(c => (availableCategories as string[]).includes(c));
     availableCategories.forEach(c => {
         if (!sortedCategories.includes(c)) sortedCategories.push(c);
     });
@@ -227,7 +227,7 @@ export default function CatalogoPage() {
                                                 size="icon"
                                                 variant="secondary"
                                                 className="h-8 w-8 rounded-full"
-                                                onClick={(e) => {
+                                                onClick={(e: React.MouseEvent) => {
                                                     e.stopPropagation();
                                                     handleAddToCart(product);
                                                 }}

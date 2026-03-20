@@ -138,20 +138,20 @@ export function BuilderPerformance() {
                         <div className="grid grid-cols-1 gap-2 text-sm">
                             <div className="flex justify-between items-center group relative cursor-help">
                                 <span>Competitivo (Valorant/CS2)</span>
-                                <span className={gaming.competitive > 144 ? "text-green-500 font-bold" : "text-foreground"}>
-                                    {gaming.competitive}+ FPS
+                                <span className={(gaming?.competitive ?? 0) > 144 ? "text-green-500 font-bold" : "text-foreground"}>
+                                    {gaming?.competitive}+ FPS
                                 </span>
                             </div>
                             <div className="flex justify-between items-center">
                                 <span>Battle Royale (Warzone)</span>
-                                <span className={gaming.battleRoyale > 60 ? "text-primary font-bold" : ""}>
-                                    {gaming.battleRoyale}+ FPS
+                                <span className={(gaming?.battleRoyale ?? 0) > 60 ? "text-primary font-bold" : ""}>
+                                    {gaming?.battleRoyale}+ FPS
                                 </span>
                             </div>
                             <div className="flex justify-between items-center">
                                 <span>AAA (Cyberpunk 2077)</span>
-                                <span className={gaming.aaa > 60 ? "text-primary" : "text-muted-foreground"}>
-                                    {gaming.aaa}+ FPS
+                                <span className={(gaming?.aaa ?? 0) > 60 ? "text-primary" : "text-muted-foreground"}>
+                                    {gaming?.aaa}+ FPS
                                 </span>
                             </div>
                         </div>
