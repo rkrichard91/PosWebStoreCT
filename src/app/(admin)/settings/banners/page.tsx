@@ -29,6 +29,7 @@ interface Banner {
 }
 
 const GRADIENT_OPTIONS = [
+    { value: "none", label: "Ninguno (Sin color)" },
     { value: "from-purple-600 to-indigo-600", label: "Púrpura → Índigo" },
     { value: "from-blue-600 to-cyan-600", label: "Azul → Cian" },
     { value: "from-orange-600 to-red-600", label: "Naranja → Rojo" },
@@ -490,7 +491,11 @@ export default function BannersPage() {
                                             </div>
                                         </TableCell>
                                         <TableCell>
-                                            <div className={`h-6 w-16 rounded bg-gradient-to-r ${banner.gradient_color}`} />
+                                            {banner.gradient_color === 'none' ? (
+                                                <div className="text-xs text-muted-foreground border rounded px-2 py-1 inline-block">Ninguno</div>
+                                            ) : (
+                                                <div className={`h-6 w-16 rounded bg-gradient-to-r ${banner.gradient_color}`} />
+                                            )}
                                         </TableCell>
                                         <TableCell>
                                             <Button

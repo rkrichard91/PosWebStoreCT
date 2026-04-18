@@ -97,12 +97,15 @@ create policy "Staff Edit Products" on products
 -- POLÍTICAS FALTANTES (Agregadas para POS y Taller)
 -- Orders: Permitir crear órdenes (cualquier autenticado o anónimo si se configura, aqui asumimos auth o public para POS)
 create policy "Enable insert for authenticated users only" on orders for insert to authenticated with check (true);
-create policy "Enable select for users based on user_id" on orders for select using (auth.uid() = customer_id);
+create policy "Enable update for authenticated users only" on orders for update to authenticated using (true);
+create policy "Enable delete for authenticated users only" on orders for delete to authenticated using (true);
 
 -- Order Items
 alter table order_items enable row level security;
 create policy "Enable insert for authenticated users only" on order_items for insert to authenticated with check (true);
 create policy "Enable read access for all users" on order_items for select using (true);
+create policy "Enable update for authenticated users only" on order_items for update to authenticated using (true);
+create policy "Enable delete for authenticated users only" on order_items for delete to authenticated using (true);
 
 -- Repairs
 alter table repairs enable row level security;

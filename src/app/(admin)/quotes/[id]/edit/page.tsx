@@ -277,7 +277,7 @@ export default function EditQuotePage() {
             name: customItem.name,
             sku: customItem.sku || "MANUAL",
             cost: calculatedNetCost,
-            price: calculatedPrice,
+            price: calculatedBasePrice, // Fix: Use base price (without IVA) instead of full PVP
             quantity: 1,
             margin: profitMargin,
             image_url: customItem.image_url,
@@ -368,7 +368,7 @@ export default function EditQuotePage() {
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const { data: newProd, error } = await (supabase.from('products') as any).insert({
                         name: item.name, sku: generatedSku, slug: generatedSlug,
-                        price_public: item.price, price_cash: item.price, cost_price: item.cost,
+                        price_public: item.price * 1.15, price_cash: item.price * 1.15, cost_price: item.cost,
                         stock_physical: 0, min_stock_alert: 0, image_url: item.image_url || null,
                         category: 'service', is_active: item.add_to_catalog ? true : false,
                         description: "Ítem creado desde cotización", specs: {}

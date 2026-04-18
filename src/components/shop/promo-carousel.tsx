@@ -100,7 +100,9 @@ export function PromoCarousel() {
                             priority={index === 0}
                         />
                         {/* Gradient Overlay for Text Readability */}
-                        <div className={`absolute inset-0 bg-gradient-to-r ${promo.gradient_color} opacity-70 mix-blend-multiply`} />
+                        {promo.gradient_color !== 'none' && (
+                            <div className={`absolute inset-0 bg-gradient-to-r ${promo.gradient_color} opacity-70 mix-blend-multiply`} />
+                        )}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
                     </div>
 
