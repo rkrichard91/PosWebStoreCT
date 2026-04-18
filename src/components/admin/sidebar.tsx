@@ -73,7 +73,6 @@ export function AdminSidebarContent({ onNavigate }: { onNavigate?: () => void })
                         <LogOut className="h-4 w-4" />
                         Cerrar Sesión
                     </Button>
-                </Button>
             </div>
         </div>
     );
