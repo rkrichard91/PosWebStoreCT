@@ -12,11 +12,13 @@ import { AddToCartButton } from "./add-to-cart-button";
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params;
     const supabase = await createClient();
-    const { data: product } = await supabase
+    const { data } = await supabase
         .from("products")
         .select("*")
         .eq("slug", slug)
         .single();
+
+    const product = data as Product;
 
     if (!product) {
         return {
