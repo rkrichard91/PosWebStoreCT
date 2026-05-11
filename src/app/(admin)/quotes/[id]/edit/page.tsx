@@ -76,12 +76,6 @@ export default function EditQuotePage() {
     const [calculatedIvaProveedor, setCalculatedIvaProveedor] = useState<number>(0);
     const [calculatedTotalPagado, setCalculatedTotalPagado] = useState<number>(0);
 
-    const printRef = useRef<HTMLDivElement>(null);
-    const handlePrint = useReactToPrint({
-        contentRef: printRef,
-        documentTitle: `Cotizacion_${form.getValues("name") || quoteId}`,
-    });
-
     const form = useForm<z.infer<typeof customerSchema>>({
         resolver: zodResolver(customerSchema),
         defaultValues: {
@@ -91,6 +85,12 @@ export default function EditQuotePage() {
             email: "",
             address: "",
         },
+    });
+
+    const printRef = useRef<HTMLDivElement>(null);
+    const handlePrint = useReactToPrint({
+        contentRef: printRef,
+        documentTitle: `Cotizacion_${form.getValues("name") || quoteId}`,
     });
 
     // Calculator Logic (for manual items) - Auto-calculate price from cost + margin
