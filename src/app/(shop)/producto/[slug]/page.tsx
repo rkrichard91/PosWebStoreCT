@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         .eq("slug", slug)
         .single();
 
-    const product = data as Product;
+    const product = data as any;
 
     if (!product) {
         return {
