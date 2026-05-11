@@ -5,7 +5,8 @@ import { Product } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ShoppingCart, PackageOpen, Check, X } from 'lucide-react';
+import { ShoppingCart, PackageOpen, Check, X, ExternalLink } from 'lucide-react';
+import Link from 'next/link';
 import { useCartStore } from '@/store/cart-store';
 import { formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -237,15 +238,23 @@ export function ProductDetailModal({ product, open, onOpenChange }: ProductDetai
                             )}
                         </div>
 
-                        {/* Add to Cart Button */}
-                        <Button
-                            className="w-full"
-                            onClick={handleAddToCart}
-                            disabled={!isInStock}
-                        >
-                            <ShoppingCart className="mr-2 h-4 w-4" />
-                            Agregar al Carrito
-                        </Button>
+                        {/* Add to Cart and View Full Page Buttons */}
+                        <div className="flex gap-2 w-full pt-2">
+                            <Button
+                                className="flex-1 btn-gradient hover-3d"
+                                onClick={handleAddToCart}
+                                disabled={!isInStock}
+                            >
+                                <ShoppingCart className="mr-2 h-4 w-4" />
+                                Agregar al Carrito
+                            </Button>
+                            <Button variant="outline" size="icon" className="shrink-0" asChild>
+                                <Link href={`/producto/${product.slug}`} onClick={() => onOpenChange(false)}>
+                                    <ExternalLink className="h-4 w-4" />
+                                    <span className="sr-only">Ver página completa</span>
+                                </Link>
+                            </Button>
+                        </div>
                     </div>
                 </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -13,6 +13,7 @@ import { Trash2, Plus, Search, Printer, Save, Eye, EyeOff, Image as ImageIcon } 
 import Image from "next/image";
 import { toast } from "sonner";
 import { useRouter, useParams } from "next/navigation";
+import { useReactToPrint } from "react-to-print";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -74,6 +75,12 @@ export default function EditQuotePage() {
     const [calculatedIvaCliente, setCalculatedIvaCliente] = useState<number>(0);
     const [calculatedIvaProveedor, setCalculatedIvaProveedor] = useState<number>(0);
     const [calculatedTotalPagado, setCalculatedTotalPagado] = useState<number>(0);
+
+    const printRef = useRef<HTMLDivElement>(null);
+    const handlePrint = useReactToPrint({
+        contentRef: printRef,
+        documentTitle: `Cotizacion_${form.getValues("name") || quoteId}`,
+    });
 
     const form = useForm<z.infer<typeof customerSchema>>({
         resolver: zodResolver(customerSchema),
@@ -649,7 +656,7 @@ export default function EditQuotePage() {
                 )}
 
                 {/* RIGHT/Main Area: Quote Details */}
-                <div className="space-y-6" id="printable-quote-section">
+                <div className="space-y-6" id="printable-quote-section" ref={printRef}>
                     <Card className="h-full flex flex-col min-h-[500px] border shadow-sm print:border-none print:shadow-none">
                         <CardHeader className="border-b bg-muted/10 pb-6 print:pb-2 print:pt-0">
                             {/* Header con logo, título centrado y datos */}
@@ -834,7 +841,7 @@ export default function EditQuotePage() {
                                 * Los precios incluyen IVA si aplica.
                             </div>
                             <div className="flex gap-3">
-                                <Button variant="outline" onClick={() => window.print()}>
+                                <Button variant="outline" onClick={() => handlePrint()}>
                                     <Printer className="mr-2 h-4 w-4" /> Imprimir
                                 </Button>
                                 <Button onClick={form.handleSubmit(onSubmit)} disabled={items.length === 0} size="lg" className="px-8">

@@ -70,20 +70,21 @@ export function CartSheet() {
                         Revisa tus productos antes de finalizar la compra.
                     </SheetDescription>
                 </SheetHeader>
-                <ScrollArea className="flex-1 pr-6">
-                    {items.length === 0 ? (
-                        <div className="flex h-full flex-col items-center justify-center space-y-2 p-8 text-center text-muted-foreground">
-                            <ShoppingCart className="h-12 w-12 opacity-20" />
-                            <p>Tu carrito está vacío.</p>
-                            <Button variant="link" asChild className="mt-4">
-                                <Link href="/catalogo">Ver productos</Link>
-                            </Button>
-                        </div>
-                    ) : (
-                        <div className="flex flex-col gap-5 p-1">
+                <div className="flex-1 min-h-0">
+                    <ScrollArea className="h-full pr-6">
+                        {items.length === 0 ? (
+                            <div className="flex h-full flex-col items-center justify-center space-y-2 p-8 text-center text-muted-foreground">
+                                <ShoppingCart className="h-12 w-12 opacity-20" />
+                                <p>Tu carrito está vacío.</p>
+                                <Button variant="link" asChild className="mt-4">
+                                    <Link href="/catalogo">Ver productos</Link>
+                                </Button>
+                            </div>
+                        ) : (
+                        <div className="flex flex-col gap-5 p-1 pb-4">
                             {items.map((item) => (
                                 <div key={item.id} className="flex gap-4">
-                                    <div className="relative h-16 w-16 overflow-hidden rounded-md border bg-muted">
+                                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md border bg-muted">
                                         {item.image_url ? (
                                             <Image
                                                 src={item.image_url}
@@ -131,7 +132,7 @@ export function CartSheet() {
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                                className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0"
                                                 onClick={() => removeItem(item.id)}
                                             >
                                                 <Trash2 className="h-4 w-4" />
@@ -143,9 +144,10 @@ export function CartSheet() {
                             ))}
                         </div>
                     )}
-                </ScrollArea>
+                    </ScrollArea>
+                </div>
                 {items.length > 0 && (
-                    <div className="space-y-4 pr-6 pt-4">
+                    <div className="space-y-4 pr-6 pt-4 pb-6">
                         <Separator />
                         <div className="flex items-center justify-between text-base font-semibold">
                             <span>Total Estimado</span>

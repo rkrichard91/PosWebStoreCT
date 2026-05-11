@@ -13,6 +13,7 @@ import { formatCurrency } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { ProductDetailModal } from '@/components/shop/product-detail-modal';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const CATEGORY_DISPLAY: Record<string, string> = {
     'laptop': 'Laptops & Notebooks',
@@ -103,8 +104,44 @@ export default function CatalogoPage() {
 
     if (loading) {
         return (
-            <div className="container py-20 flex justify-center items-center min-h-[50vh]">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            <div className="min-h-screen bg-background pb-10">
+                <section className="bg-muted/30 border-b py-8">
+                    <div className="container mx-auto px-4">
+                        <Skeleton className="h-9 w-48 mb-2" />
+                        <Skeleton className="h-5 w-72 mb-6" />
+                        <Skeleton className="h-10 w-full max-w-md rounded-md" />
+                    </div>
+                </section>
+                <div className="container mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8">
+                    <aside className="lg:w-64 flex-shrink-0 space-y-2">
+                        <Skeleton className="h-5 w-24 mb-4" />
+                        {Array.from({ length: 8 }).map((_, i) => (
+                            <Skeleton key={i} className="h-10 w-full rounded-md" />
+                        ))}
+                    </aside>
+                    <main className="flex-1">
+                        <div className="mb-4 flex items-center justify-between">
+                            <Skeleton className="h-7 w-48" />
+                            <Skeleton className="h-5 w-24" />
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            {Array.from({ length: 8 }).map((_, i) => (
+                                <div key={i} className="flex flex-col h-full overflow-hidden border rounded-xl">
+                                    <Skeleton className="aspect-square w-full rounded-none" />
+                                    <div className="flex-1 p-4 flex flex-col gap-2">
+                                        <Skeleton className="h-4 w-16" />
+                                        <Skeleton className="h-5 w-full" />
+                                        <Skeleton className="h-5 w-2/3" />
+                                        <div className="mt-auto pt-3 flex justify-between items-center">
+                                            <Skeleton className="h-6 w-20" />
+                                            <Skeleton className="h-8 w-8 rounded-full" />
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </main>
+                </div>
             </div>
         );
     }
@@ -167,16 +204,31 @@ export default function CatalogoPage() {
                     </div>
 
                     {filteredProducts.length === 0 ? (
-                        <div className="py-20 text-center text-muted-foreground border-2 border-dashed rounded-xl">
-                            <PackageOpen className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                            <p>No se encontraron productos en esta categoría.</p>
+                        <div className="py-20 text-center text-muted-foreground border-2 border-dashed rounded-xl glass-card flex flex-col items-center justify-center animate-in fade-in zoom-in duration-500">
+                            <div className="bg-primary/10 p-4 rounded-full mb-4">
+                                <PackageOpen className="h-12 w-12 text-primary opacity-60" />
+                            </div>
+                            <h3 className="text-xl font-semibold text-foreground mb-2">Sin Resultados</h3>
+                            <p className="max-w-md mx-auto">No encontramos productos que coincidan con tu búsqueda o filtro actual.</p>
+                            {searchTerm || selectedCategory !== "all" ? (
+                                <Button 
+                                    variant="outline" 
+                                    className="mt-6"
+                                    onClick={() => {
+                                        setSearchTerm("");
+                                        setSelectedCategory("all");
+                                    }}
+                                >
+                                    Limpiar Filtros
+                                </Button>
+                            ) : null}
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                             {filteredProducts.map(product => (
                                 <Card
                                     key={product.id}
-                                    className="flex flex-col h-full overflow-hidden hover:shadow-lg transition-all duration-200 cursor-pointer group"
+                                    className="flex flex-col h-full overflow-hidden glass-card hover-3d cursor-pointer group"
                                     onClick={() => openProductModal(product)}
                                 >
                                     <div className="aspect-square bg-muted relative overflow-hidden">
