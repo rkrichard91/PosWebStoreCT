@@ -32,11 +32,11 @@ export default async function DashboardPage() {
     ]);
 
     // Calculate metrics
-    const totalRevenue = ordersData?.reduce((acc, order) => acc + (order.total || 0), 0) || 0;
-    const salesCount = ordersData?.length || 0;
-    const activeRepairsCount = repairsData?.length || 0;
+    const totalRevenue = (ordersData as any[])?.reduce((acc, order) => acc + (order.total || 0), 0) || 0;
+    const salesCount = (ordersData as any[])?.length || 0;
+    const activeRepairsCount = (repairsData as any[])?.length || 0;
     
-    const lowStockProducts = productsData?.filter(p => p.stock_physical <= p.min_stock_alert) || [];
+    const lowStockProducts = (productsData as any[])?.filter(p => p.stock_physical <= p.min_stock_alert) || [];
     const lowStockCount = lowStockProducts.length;
 
     // Process data for the chart (group sales by month or last 7 days)
@@ -45,12 +45,12 @@ export default async function DashboardPage() {
     
     let chartData: { name: string; total: number }[] = [];
     
-    if (ordersData && ordersData.length > 0) {
+    if (ordersData && (ordersData as any[]).length > 0) {
         // Group by day name (very simplified)
         const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
         const grouped: Record<string, number> = {};
         
-        ordersData.forEach(order => {
+        (ordersData as any[]).forEach(order => {
             if (order.created_at) {
                 const date = new Date(order.created_at);
                 const dayName = days[date.getDay()];
@@ -153,9 +153,9 @@ export default async function DashboardPage() {
                         <CardDescription>Últimos equipos ingresados al taller.</CardDescription>
                     </CardHeader>
                     <CardContent className="flex-1">
-                        {repairsData && repairsData.length > 0 ? (
+                        {repairsData && (repairsData as any[]).length > 0 ? (
                             <div className="space-y-4">
-                                {repairsData.map(repair => (
+                                {(repairsData as any[]).map(repair => (
                                     <div key={repair.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
                                         <div className="space-y-1">
                                             <p className="text-sm font-medium leading-none">Ticket #{repair.ticket_number}</p>
